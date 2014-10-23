@@ -4,6 +4,7 @@ from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
 from contextlib import closing
 from sqlite3 import dbapi2 as sqlite3
+import datetime
 
 
 # configuration
@@ -43,6 +44,22 @@ def teardown_request(exception):
     if db is not None:
         db.close()
 
+@app.route('/')
+def show_questions():
+    cur = g.db.execute('select question_text from Question order by question_date desc')
+    questions = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+    return render_template('show_entries.html', questions=questions)
+
+@app.route('/add', methods=['POST'])
+def add_question():
+    print request.form
+    print datetime.date
+    print datetime.time
+    # g.db.execute('insert into Question (title, text) values (?, ?)',
+    #              [request.form['title'], request.form['text']])
+    # g.db.commit()
+    flash('New question received but not inserted into db ... yet')
+    return redirect(url_for('show_questions'))
 
 if __name__ == '__main__':
     app.run()
