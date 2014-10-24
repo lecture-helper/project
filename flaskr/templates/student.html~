@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block body %}
+    <form action="{{ url_for('class_page') }}" method=post class=add-question>
+      <dl>
+        <dt>Question:
+        <dd><textarea name=text rows=5 cols=40></textarea>
+        <dd><input type=submit value=Ask>
+      </dl>
+    </form>
+  <ul class=entries>
+  {% for question in questions %}
+    <li><h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }}
+  {% else %}
+    <li><em>No questions have been asked</em>
+  {% endfor %}
+  </ul>
+{% endblock %}
