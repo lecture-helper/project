@@ -46,19 +46,25 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_questions():
-    cur = g.db.execute('select question_text from Question order by question_date desc')
-    questions = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
-    return render_template('show_entries.html', questions=questions)
+    cur = g.db.execute('select question_text, question_date, question_time from Question order by question_date desc, question_time desc')
+    questions = [dict(text=row[0], date=row[1], time=row[2]) for row in cur.fetchall()]
+    return render_template('show_questions.html', questions=questions)
 
 @app.route('/add', methods=['POST'])
 def add_question():
-    print request.form
-    print datetime.date
-    print datetime.time
-    # g.db.execute('insert into Question (title, text) values (?, ?)',
-    #              [request.form['title'], request.form['text']])
-    # g.db.commit()
-    flash('New question received but not inserted into db ... yet')
+    txt = request.form['text']
+    print txt
+    if len(txt) == 0:
+        flash('Empty question received and not inserted into db')
+        return redirect(url_for('show_questions'))
+
+    dt = datetime.datetime.now()
+    date = str(dt.date())
+    time = str(dt.time())
+    g.db.execute('insert into Question (question_text, question_date, question_time) values (?, ?, ?)',
+        [txt, date, time])
+    g.db.commit()
+    flash('New question received and inserted into db')
     return redirect(url_for('show_questions'))
 
 if __name__ == '__main__':
