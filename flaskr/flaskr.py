@@ -46,12 +46,19 @@ def teardown_request(exception):
         db.close()
 
 
-@app.route('/professor', methods=['POST'])
+@app.route('/professor')
 def professor():
-    cur = g.db.execute('select question_text, question_date, question_time from Question order by question_date desc, question_time desc')
-    questions = [dict(text=row[0], date=row[1], time=row[2]) for row in cur.fetchall()]
-    return render_template('professor.html', questions=questions)
+    cur = g.db.execute('select * from Class')
+    prof_class = [dict(class_name=row[0], class_key=row[1]) for row in cur.fetchall()]
+    return render_template('professor.html', classes=prof_class)
 
+
+
+@app.route('/professor_class/<class_name1>')
+def professor_class():
+    cur = g.db.execute('select question_text, question_date, question_time from Question where question_id = (select question_id from Asked_in where class_name=class_name1)  order by question_date desc, question_time desc')
+    questions = [dict(text=row[0], date=row[1], time=row[2]) for row in cur.fetchall()]
+    return render_template('class.html', questions=questions, class_name=class_name1)
 
 @app.route('/add_class', methods=['POST'])
 def add_class():
@@ -65,7 +72,7 @@ def add_class():
         flash('No class key received and not inserted into db')
         return redirect(url_for('professor'))
 
-    g.db.execute('insert into Class (class_name, class_key) values (?, ?, ?)',
+    g.db.execute('insert into Class (class_name, class_key) values (?, ?)',
         [class_name, class_key])
     g.db.commit()
     flash('New class added')

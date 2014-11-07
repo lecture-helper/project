@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+	<h2>{{class_name}}</h2>
   <ul class=entries>
   {% for question in questions %}
     <li><h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }}
