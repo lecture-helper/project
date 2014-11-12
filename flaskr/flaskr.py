@@ -45,13 +45,28 @@ def teardown_request(exception):
     if db is not None:
         db.close()
 
+def formatDate(d):
+    monthDict={1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'}
+    li = d.split('-')
+    return '{0} {1}, {2}'.format(monthDict[int(li[1])], li[2], li[0])
+
+def formatTime(t):
+    li = t.split(':')
+    meridiem = {0:'am', 1:'pm'}
+    return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])    
 
 @app.route('/professor')
 def professor():
+<<<<<<< HEAD
     cur = g.db.execute('select * from Class')
     prof_class = [dict(class_name=row[0], class_key=row[1]) for row in cur.fetchall()]
     return render_template('professor.html', classes=prof_class)
 
+=======
+    cur = g.db.execute('select question_text, question_date, question_time from Question order by question_date desc, question_time desc')
+    questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2])) for row in cur.fetchall()]
+    return render_template('professor.html', questions=questions)
+>>>>>>> 88f7b6da2b3531ef9d8603546bb2f862826b8440
 
 
 @app.route('/professor_class/<class_name1>')
@@ -98,7 +113,7 @@ def delete_class():
 @app.route('/student')
 def student():
     cur = g.db.execute('select question_text, question_date, question_time from Question order by question_date desc, question_time desc')
-    questions = [dict(text=row[0], date=row[1], time=row[2]) for row in cur.fetchall()]
+    questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2])) for row in cur.fetchall()]
     return render_template('student.html', questions=questions)
 
 
