@@ -18,7 +18,7 @@
     </form>  	
 	<ul class=entries>
   {% for class in classes %}
-    <li><<strong>Name:</strong> <a href="{{url_for('professor_class',class_name1=class.class_name)}}">{{ class.class_name }}</a> <strong>Key:</strong> {{ class.class_key }}
+    <li><strong>Name:</strong> <a href="{{url_for('professor_class',class_name1=classes.class_name)}}">{{ classes.class_name }}</a> <strong>Key:</strong> {{ classes.class_key }}
   {% else %}
     <li><em>No classes</em>
   {% endfor %}
