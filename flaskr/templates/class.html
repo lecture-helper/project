@@ -1,11 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
+	<h3>{{prof_username}}</h3>
+	<br>
 	<h2>{{class_name}}</h2>
-  <ul class=entries>
-  {% for question in questions %}
-    <li><h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }}
-  {% else %}
-    <li><em>No questions have been asked</em>
-  {% endfor %}
-  </ul>
+	<ul class=entries>
+	{% for question in questions %}
+		<li><h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }}
+	{% else %}
+		<li><em>No questions have been asked</em>
+	{% endfor %}
+	</ul>
 {% endblock %}

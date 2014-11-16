@@ -1,24 +1,86 @@
 {% extends "layout.html" %}
 {% block body %}
-    <form action="{{ url_for('add_class') }}" method=post class=add-class>
-      <dl>
-        <dt>Class Name:
-        <dd><textarea name=class_name rows=1 cols=40></textarea>
-		<dt>Class Key:
-        <dd><textarea name=class_key rows=1 cols=40></textarea>
-        <dd><input type=submit value=Add>
-      </dl>
-    </form>
-	<form action="{{ url_for('delete_class') }}" method=post class=delete-class>
-      <dl>
-        <dt>Delete Class:
-        <dd><textarea name=class_name rows=1 cols=40></textarea>
-        <dd><input type=submit value=Delete>
-      </dl>
-    </form>  	
+  <h3>{{prof_username}}</h3>
+  <br>
+  <h2>Add a New Class</h2>
+  <form action="{{ url_for('add_class') }}" method=post class=add-class>
+    <dl>
+      <dt>Class Name:
+      <dd><textarea name="class_name" rows=1 cols=40></textarea>
+	    <dt>Class Key:
+      <dd><textarea name="class_key" rows=1 cols=40></textarea>
+      <dd><input type=hidden name="username" value={{prof_username}}>
+      <dd><input type=submit value="Add">
+    </dl>
+  </form>
+  <br>
+  <h2>Subscribe to an Existing Class</h2>
+  <form action="{{ url_for('subscribe') }}" method=post class=subscribe-class>
+    <dl>
+      <dt>Class Name:
+      <dd><textarea name="class_name" rows=1 cols=40></textarea>
+      <dt>Class Key:
+      <dd><textarea name="class_key" rows=1 cols=40></textarea>
+      <dd><input type=hidden name="username" value={{prof_username}}>
+      <dd><input type=submit value="Subscribe">
+    </dl>
+  </form>  
+  <br>
+  <h2>Delete a Class</h2>
+  <div id="delete">
+  </div>
+  <script>
+    document.getElementById("delete").innerHTML=delete_class();
+
+    function delete_class() {
+      var output = "";
+      var classes = {{classes|tojson}};
+      if(classes.length==0)
+        output += "<p>No classes to delete</p>"
+      else {
+        output += "<form action=\"{{ url_for('delete_class') }}\" method=post class=delete-class><select name='class_name'>";
+        for(var i=0; i<classes.length; i++){
+          var class1 = classes[i].class_name;
+          output += "<option value='" + class1 + "'>" + class1 + "</option>";
+        }
+        output += "</select><input type=hidden name=\"username\" value={{prof_username}}><input type=submit value='delete'></form>";
+      }
+      return output;
+    }
+  </script>
+  <br>
+  <h2>Unsubscribe from an Existing Class</h2>  	
+  <!--<form action="{{ url_for('unsubscribe') }}" method=post class=unsubscribe-class>
+    <dl>
+      <dt>Class:
+      <dd><textarea name="class_name" rows=1 cols=40></textarea>
+      <dd><input type=hidden name="username" value={{prof_username}}>
+      <dd><input type=submit value="Unsubscribe">
+    </dl>
+  </form>-->  
+  <div id="unsubscribe"></div>
+  <script>
+    document.getElementById("unsubscribe").innerHTML=unsubscribe_class();
+
+    function unsubscribe_class() {
+      var output = "";
+      var classes = {{classes|tojson}};
+      if(classes.length==0)
+        output += "<p>No classes to unsubscribe from</p>"
+      else {
+        output += "<form action=\"{{ url_for('unsubscribe') }}\" method=post class=unsubscribe-class><select name='class_name'>";
+        for(var i=0; i<classes.length; i++){
+          var class1 = classes[i].class_name;
+          output += "<option value='" + class1 + "'>" + class1 + "</option>";
+        }
+        output += "</select><input type=hidden name=\"username\" value={{prof_username}}><input type=submit value='delete'></form>";
+      }
+      return output;
+    }
+  </script>
 	<ul class=entries>
   {% for class in classes %}
-    <li><strong>Name:</strong> <a href="{{url_for('professor_class',class_name1=class.class_name)}}">{{ class.class_name }}</a> <strong>Key:</strong> {{ class.class_key }}
+    <li><strong>Name:</strong> <a href="{{url_for('professor_class', username=prof_username, class_name1=class.class_name)}}">{{ class.class_name }}</a> <strong>Key:</strong> {{ class.class_key }}
   {% else %}
     <li><em>No classes</em>
   {% endfor %}
