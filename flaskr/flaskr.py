@@ -73,6 +73,51 @@ def add_temp():
 	flash('Person added')
 	return redirect(url_for('temp'))
 
+@app.route('/signup')
+def signup():
+	return render_template('signup.html')
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+	type = request.form['type'].lower().strip()
+	if type == 'student': type = 0
+	else: type = 1
+
+	username = request.form['username']
+	password = request.form['password']
+	email = request.form['email']
+
+	# check if username already used
+	cur = g.db.execute('select username from Person where username = (?)', [username])
+	user = [dict(class_name=row[0]) for row in cur.fetchall()]
+	if len(user) == 0:
+		cur = g.db.execute('insert into Person(type, username, password, email) values (?,?,?,?)', [type, username, password, email])
+		g.db.commit()
+		flash('Account created - you may login')
+		return redirect(url_for('login'))
+	else:
+		flash('Error: Username already exists - select new username')
+		return redirect(url_for('signup'))
+	
+
+@app.route('/login')
+def login():
+	return render_template('login.html')
+
+@app.route('/submit_login', methods=['POST'])
+def submit_login():
+	username = request.form['username']
+	password = request.form['password']
+	cur = g.db.execute('select type from Person where username = (?) and password = (?)', [username, password])
+	user = [dict(type=row[0]) for row in cur.fetchall()]
+	if len(user) == 0:
+		flash('Incorrect username or password')
+		return redirect(url_for('login'))
+	if user[0]['type'] == 0:
+		return redirect(url_for('student'))
+	else:
+		return redirect(url_for('professor'))
+
 @app.route('/professor')
 def professor():
 	username = 'prof1' #change later and pass through from login
