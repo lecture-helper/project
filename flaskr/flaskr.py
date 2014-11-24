@@ -101,10 +101,13 @@ def add_class():
 	if len(class_key) == 0:
 		flash('No class key received and not added')
 		return redirect(url_for('professor'))
-	g.db.execute('insert into Class (class_name, class_key) values (?, ?)', [class_name, class_key])
-	g.db.execute('insert into Subscribes (username, class_name) values (?, ?)', [username, class_name])
-	g.db.commit()
-	flash('New class added')
+	try:
+		g.db.execute('insert into Class (class_name, class_key) values (?, ?)', [class_name, class_key])
+		g.db.execute('insert into Subscribes (username, class_name) values (?, ?)', [username, class_name])
+		g.db.commit()
+		flash('New class added')
+	except:
+		flash('This class already exists')
 	return redirect(url_for('professor'))
 
 
