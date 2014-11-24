@@ -1,6 +1,6 @@
-{% extends "layout.html" %}
+{% extends "user.html" %}
 {% block body %}
-  <h3>{{prof_username}}</h3>
+  <h3>{{current_user.username}}</h3>
   <br>
   <h2>Add a New Class</h2>
   <form action="{{ url_for('add_class') }}" method=post class=add-class>

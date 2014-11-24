@@ -6,6 +6,9 @@ from flask import Flask, request, session, g, redirect, url_for, \
 from contextlib import closing
 from sqlite3 import dbapi2 as sqlite3
 import datetime
+from user import User
+
+from flask.ext.login import *
 
 
 # configuration
@@ -18,8 +21,10 @@ PASSWORD = 'default'
 
 
 # create our little application :)
+login_manager = LoginManager()
 app = Flask(__name__)
 app.config.from_object(__name__)
+login_manager.init_app(app)
 
 
 # connect to our db above
@@ -45,6 +50,17 @@ def teardown_request(exception):
 	db = getattr(g, 'db', None)
 	if db is not None:
 		db.close()
+
+
+@login_manager.user_loader
+def load_user(userid):
+	cur = g.db.execute('select type from Person where username = (?)', [userid])
+	person = [dict(type=row[0]) for row in cur.fetchall()]
+	if len(person) == 0:
+		return None
+	else:
+		return User(userid, person[0]['type'])
+
 
 def formatDate(d):
 	monthDict={1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'}
@@ -98,33 +114,53 @@ def add_user():
 	else:
 		flash('Error: Username already exists - select new username')
 		return redirect(url_for('signup'))
-	
+
+@app.route('/logout')
+def logout():
+	from flask.ext.login import logout_user
+	logout_user()
+	return redirect(url_for('login'))
 
 @app.route('/login')
 def login():
-	return render_template('login.html')
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return render_template('login.html')
+	else:
+		if current_user.isStudent:
+			return redirect(url_for('student'))
+		else:
+			return redirect(url_for('professor'))
+
 
 @app.route('/submit_login', methods=['POST'])
 def submit_login():
 	username = request.form['username']
 	password = request.form['password']
 	cur = g.db.execute('select type from Person where username = (?) and password = (?)', [username, password])
-	user = [dict(type=row[0]) for row in cur.fetchall()]
-	if len(user) == 0:
+	person = [dict(type=row[0]) for row in cur.fetchall()]
+	if len(person) == 0:
 		flash('Incorrect username or password')
 		return redirect(url_for('login'))
-	if user[0]['type'] == 0:
+	user = User(username, person[0]['type'])
+	from flask.ext.login import login_user
+	login_user(user)
+	if person[0]['type'] == 0:
 		return redirect(url_for('student'))
 	else:
 		return redirect(url_for('professor'))
 
 @app.route('/professor')
 def professor():
-	username = 'prof1' #change later and pass through from login
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
+	username = current_user.username
 	cur = g.db.execute('select Class.class_name, Class.class_key from Class, Subscribes where Class.class_name = Subscribes.class_name AND Subscribes.username="'+username+'"')
 	prof_class = [dict(class_name=row[0], class_key=row[1]) for row in cur.fetchall()]
-	prof_username = username
-	return render_template('professor.html', classes=prof_class, prof_username = prof_username)
+	return render_template('professor.html', classes=prof_class)
 
 
 @app.route('/professor_class/<username>/<class_name1>')
@@ -210,7 +246,11 @@ def unsubscribe():
 	
 @app.route('/student')
 def student():
-	username = 'hxkoh2'
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	if current_user.isProfessor: return redirect(url_for('professor'))
+	username = current_user.username
 	cur = g.db.execute('select question_text, question_date, question_time, question_confusion from Question where Question.question_id IN (select question_id from Asked_in) order by question_date desc, question_time desc')
 	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3]) for row in cur.fetchall()]
 	return render_template('student.html', questions=questions)
