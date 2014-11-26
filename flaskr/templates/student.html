@@ -13,11 +13,11 @@
         <dd><input type=submit value=Ask>
       </dl>
     </form>
-  <ul class=entries>
+  <div class=entries>
   {% for question in questions %}
-    <li><h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }},{{question.confusion}}
+    <h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }},{{question.confusion}}
   {% else %}
-    <li><em>No questions have been asked</em>
+    <em>No questions have been asked</em>
   {% endfor %}
-  </ul>
+  </div>
 {% endblock %}

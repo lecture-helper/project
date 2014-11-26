@@ -16,7 +16,8 @@ question_confusion INT
 
 CREATE TABLE Class (
 class_name VARCHAR(100) PRIMARY KEY,
-class_key INT
+class_key INT,
+class_admin VARCHAR(1000) 
 );
 
 CREATE TABLE Asks (

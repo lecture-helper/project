@@ -1,6 +1,34 @@
 {% extends "user.html" %}
 {% block body %}
-  <h3>{{current_user.username}}</h3>
+  <br>
+  <h2>Classes</h2>
+  <div class=entries>
+  {% for class in classes %}
+    <dl id="registered-class">
+      <dt><a class=classname id="classname" href="{{url_for('professor_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> 
+      <br><button id="unsubscribe">Unsubscribe</button> <button id="delete">Delete</button></dt>
+      <br>
+      <dd><strong>Key:</strong> <span id="class_key">{{class.class_key}}</span> <button id="change-key">Change Key</button>
+      <form id="key-form" class="key-form" style="display:none">
+        <textarea name="newkey" id="newkey" rows=1 cols=40></textarea>
+        <input type=hidden name="class_name" value="{{class.class_name}}">
+        <input type=hidden name="oldkey" value="{{class.class_key}}">
+        <input type=submit value="Submit">
+      </form>
+      </dd>
+      <dd><strong>Admins:</strong> <span id="class_admin">{{class.class_admin}}</span> <button id="change-admin">Change Admins</button>
+      <form id="admin-form" class="admin-form" style="display:none">
+        <textarea name="newadmins" id="newadmins" rows=3 cols=40></textarea>
+        <input type=hidden name="class_name" value="{{class.class_name}}">
+        <input type=hidden name="oldadmin" value="{{class.class_admin}}">
+        <input type=submit value="Submit">
+      </form>
+      </dd>
+    </dl>
+  {% else %}
+    <em>No classes</em>
+  {% endfor %}
+  </div>
   <br>
   <h2>Add a New Class</h2>
   <form action="{{ url_for('add_class') }}" method=post class=add-class>
@@ -9,7 +37,9 @@
       <dd><textarea name="class_name" rows=1 cols=40></textarea>
 	    <dt>Class Key:
       <dd><textarea name="class_key" rows=1 cols=40></textarea>
-      <dd><input type=hidden name="username" value={{prof_username}}>
+      <dt>Admin(s):
+      <dd><textarea name="class_admins" rows=1 cols=40></textarea>
+      <dd>(Add usernames of admins separated by commas)
       <dd><input type=submit value="Add">
     </dl>
   </form>
@@ -21,12 +51,11 @@
       <dd><textarea name="class_name" rows=1 cols=40></textarea>
       <dt>Class Key:
       <dd><textarea name="class_key" rows=1 cols=40></textarea>
-      <dd><input type=hidden name="username" value={{prof_username}}>
       <dd><input type=submit value="Subscribe">
     </dl>
   </form>  
   <br>
-  <h2>Delete a Class</h2>
+  <!--<h2>Delete a Class</h2>
   <div id="delete">
   </div>
   <script>
@@ -43,24 +72,17 @@
           var class1 = classes[i].class_name;
           output += "<option value='" + class1 + "'>" + class1 + "</option>";
         }
-        output += "</select><input type=hidden name=\"username\" value={{prof_username}}><input type=submit value='delete'></form>";
+        output += "</select><input type=submit value='delete'></form>";
       }
       return output;
     }
   </script>
   <br>
   <h2>Unsubscribe from an Existing Class</h2>  	
-  <!--<form action="{{ url_for('unsubscribe') }}" method=post class=unsubscribe-class>
-    <dl>
-      <dt>Class:
-      <dd><textarea name="class_name" rows=1 cols=40></textarea>
-      <dd><input type=hidden name="username" value={{prof_username}}>
-      <dd><input type=submit value="Unsubscribe">
-    </dl>
-  </form>-->  
   <div id="unsubscribe"></div>
+  <br>-->
   <script>
-    document.getElementById("unsubscribe").innerHTML=unsubscribe_class();
+    /*document.getElementById("unsubscribe").innerHTML=unsubscribe_class();
 
     function unsubscribe_class() {
       var output = "";
@@ -73,17 +95,125 @@
           var class1 = classes[i].class_name;
           output += "<option value='" + class1 + "'>" + class1 + "</option>";
         }
-        output += "</select><input type=hidden name=\"username\" value={{prof_username}}><input type=submit value='delete'></form>";
+        output += "</select><input type=submit value='delete'></form>";
       }
       return output;
-    }
+    }*/
+    
+    $(document).on('click', "#unsubscribe", function(){
+      var classname = $(this).prevAll("a#classname:first").text();
+      datastring = "class_name=" + classname;
+      $.ajax({ 
+          url: "{{ url_for('unsubscribe') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            var toRemove = $(this).parent().parent();//$(this).prevAll("dl#registered-class:first");
+            toRemove.remove();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+
+    $(document).on('click', "#delete", function(){
+      var classname = $(this).prevAll("a#classname:first").text();
+      datastring = "class_name=" + classname;
+      $.ajax({ 
+          url: "{{ url_for('delete_class') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "deleted"){
+              var toRemove = $(this).parent().parent();//$(this).prevAll("dl#registered-class:first");
+              toRemove.remove();
+            }
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+
+    $(document).on('click', "button#change-key", function(){
+      $(this).next("#key-form").toggle();
+    });
+
+    $(document).on('click', "button#change-admin", function(){
+      $(this).next("#admin-form").toggle();
+    });
+
+    $(document).on('submit', "form#key-form", function(event){
+      var datastring = $(this).serialize();
+      var me = this;
+      $.ajax({ 
+          url: "{{ url_for('update_key') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var newkey = jobject.class_key;
+            var flash = jobject.flash;
+            $(this).prevAll("span#class_key:first").html(newkey);
+            $(this).hide();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+
+    $(document).on('submit', "form#admin-form", function(event){
+      var datastring = $(this).serialize();
+      var me = this;
+      $.ajax({ 
+          url: "{{ url_for('update_admin') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var newadmins = jobject.admin;
+            var flash = jobject.flash;
+            $(this).prevAll("span#class_admin:first").html(newadmins);
+            $(this).hide();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+
+    $(document.body).click(function(e){
+      if(e.target.id != "newkey" && e.target.id !="change-key")
+        $("form#key-form").hide();
+      if(e.target.id != "newadmins" && e.target.id != "change-admin")
+        $("form#admin-form").hide();
+    });
   </script>
-	<ul class=entries>
-  {% for class in classes %}
-    <li><strong>Name:</strong> <a href="{{url_for('professor_class', username=prof_username, class_name1=class.class_name)}}">{{ class.class_name }}</a> <strong>Key:</strong> {{ class.class_key }}
-  {% else %}
-    <li><em>No classes</em>
-  {% endfor %}
-  </ul>
 {% endblock %}
 

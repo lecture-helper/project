@@ -7,7 +7,7 @@ from contextlib import closing
 from sqlite3 import dbapi2 as sqlite3
 import datetime
 from user import User
-
+import json
 from flask.ext.login import *
 
 
@@ -104,14 +104,15 @@ def add_user():
 	email = request.form['email']
 
 	# check if username already used
-	cur = g.db.execute('select username from Person where username = (?)', [username])
-	user = [dict(class_name=row[0]) for row in cur.fetchall()]
-	if len(user) == 0:
+	#cur = g.db.execute('select username from Person where username = (?)', [username])
+	#user = [dict(class_name=row[0]) for row in cur.fetchall()]
+	#if len(user) == 0:
+	try:
 		cur = g.db.execute('insert into Person(type, username, password, email) values (?,?,?,?)', [type, username, password, email])
 		g.db.commit()
 		flash('Account created - you may login')
 		return redirect(url_for('login'))
-	else:
+	except:
 		flash('Error: Username already exists - select new username')
 		return redirect(url_for('signup'))
 
@@ -158,32 +159,52 @@ def professor():
 	
 	if current_user.isStudent: return redirect(url_for('student'))
 	username = current_user.username
-	cur = g.db.execute('select Class.class_name, Class.class_key from Class, Subscribes where Class.class_name = Subscribes.class_name AND Subscribes.username="'+username+'"')
-	prof_class = [dict(class_name=row[0], class_key=row[1]) for row in cur.fetchall()]
+	cur = g.db.execute('select * from Class, Subscribes where Class.class_name = Subscribes.class_name AND Subscribes.username="'+username+'"')
+	prof_class = [dict(class_name=row[0], class_key=row[1], class_admin=row[2]) for row in cur.fetchall()]
 	return render_template('professor.html', classes=prof_class)
 
 
 @app.route('/professor_class/<username>/<class_name1>')
 def professor_class(username, class_name1):
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
 	cur = g.db.execute('select question_text, question_date, question_time,question_confusion from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
 	questions = [dict(text=row[0], date=row[1], time=row[2], confusion=row[3]) for row in cur.fetchall()]
-	prof_username = username
-	return render_template('class.html', questions=questions, class_name=class_name1, prof_username = username)
+	prof_username = current_user.username
+	return render_template('class.html', questions=questions, class_name=class_name1)
 
 
 @app.route('/add_class', methods=['POST'])
 def add_class():
-	username = request.form['username']
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
+	username = current_user.username
 	class_name = request.form['class_name']
 	class_key = request.form['class_key']
+	class_admins = request.form['class_admins']
 	if len(class_name) == 0:
-		flash('No class name received and not added')
+		flash('No class name received. Class not added')
 		return redirect(url_for('professor'))
 	if len(class_key) == 0:
-		flash('No class key received and not added')
+		flash('No class key received. Class not added')
 		return redirect(url_for('professor'))
+	if len(class_admins) == 0:
+		flash('No admins received. Class not added')
+		return redirect(url_for('professor'))
+	for admin in class_admins.split(','):
+		person = g.db.execute('select username from Person where username="' + admin.strip() + '"').fetchall()
+		if len(person) == 0:
+			flash('One of the admins does not exist. Class not added')
+			return redirect(url_for('professor'))
 	try:
-		g.db.execute('insert into Class (class_name, class_key) values (?, ?)', [class_name, class_key])
+		g.db.execute('insert into Class (class_name, class_key, class_admin) values (?, ?, ?)', [class_name, class_key, class_admins])
+		print "reached"
 		g.db.execute('insert into Subscribes (username, class_name) values (?, ?)', [username, class_name])
 		g.db.commit()
 		flash('New class added')
@@ -194,24 +215,33 @@ def add_class():
 
 @app.route('/delete_class', methods=['POST'])
 def delete_class():
-	username = request.form['username']	
-	print username
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
 	class_name = request.form['class_name']
-	print class_name
-	if len(class_name) == 0:
-		flash('No class name received and not deleted')
-		return redirect(url_for('professor'))
+	cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
+	class_admins = cur.fetchall()[0][0]
+	admins = [admin.strip() for admin in class_admins.split(',')]
+	if current_user.username not in admins:
+		return json.dumps({'status':'OK', 'flash':'You must be an admin to delete this class'})
 	g.db.execute('Delete from Class where class_name = (?)', [class_name])
 	g.db.execute('Delete from Subscribes where class_name = (?)', [class_name])
 	g.db.commit()
-	flash('Class deleted')
-	return redirect(url_for('professor'))
+	return json.dumps({'status':'deleted', 'flash':'Class deleted'})
+
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
 	class_name = request.form['class_name']
 	class_key = request.form['class_key']
-	username = request.form['username']
+	username = current_user.username
 	if len(class_name) == 0:
 		flash('No class name received and not subscribed')
 		return redirect(url_for('professor'))
@@ -234,16 +264,68 @@ def subscribe():
 
 @app.route('/unsubscribe', methods=['POST'])
 def unsubscribe():
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+
+	if current_user.isStudent: return redirect(url_for('student'))
 	class_name = request.form['class_name']
-	username = request.form['username']
+	print class_name
+	username = current_user.username
 	cur = g.db.execute('select * from Class where class_name ="' + class_name + '"')
 	if len(cur.fetchall()) == 0:
 		flash('This class does not exist')
 		return redirect(url_for('professor'))
 	g.db.execute('Delete from Subscribes where Subscribes.username="' + username + '" AND Subscribes.class_name="' + class_name + '"')
 	g.db.commit()
-	flash('Unsubscribed from class')
-	return redirect(url_for('professor'))
+	#flash('Unsubscribed from class')
+	#return redirect(url_for('professor'))
+	return json.dumps({'status':'OK', 'flash':'Unsubscribed from class'})
+
+@app.route('/update_key', methods=['POST'])
+def update_key():
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
+	newkey = request.form['newkey']
+	oldkey = request.form['oldkey']
+	if len(newkey) == 0:
+		return json.dumps({'status':'OK', 'class_key':oldkey, 'flash':'No key received'})
+	class_name = request.form['class_name']
+	print class_name
+	cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
+	class_admins = cur.fetchall()[0][0]
+	admins = [admin.strip() for admin in class_admins.split(',')]
+	if current_user.username not in admins:
+		return json.dumps({'status':'OK', 'class_key':oldkey, 'flash':'You must be an admin to change the key'})
+	g.db.execute('Update Class Set class_key="' + newkey + '" where class_name="' + class_name + '"')
+	g.db.commit()
+	return json.dumps({'status':'OK', 'class_key':newkey, 'flash':'Key updated'})
+
+@app.route('/update_admin', methods=['POST'])
+def update_admin():
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
+	newadmins = request.form['newadmins']
+	class_name = request.form['class_name']
+	oldadmins = request.form['oldadmin']
+	if len(newadmins) == 0:
+		return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'No admins received'})
+	old_admins = [admin.strip() for admin in oldadmins.split(',')]
+	if current_user.username not in old_admins:
+		return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'You must be an admin to change the admins'})
+	for admin in newadmins.split(','):
+		person = g.db.execute('select username from Person where username="' + admin.strip() + '"').fetchall()
+		if len(person) == 0:
+			return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'One of the admins does not exist'})
+	g.db.execute('Update Class Set class_admin="' + newadmins + '" where class_name="' + class_name + '"')	
+	g.db.commit()
+	return json.dumps({'status':'OK', 'admin':newadmins, 'flash':'Admins updated'})
 
 ##############################Student Code#####################################	
 	
