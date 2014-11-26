@@ -200,17 +200,14 @@ def add_class():
 	for admin in class_admins.split(','):
 		person = g.db.execute('select username from Person where username="' + admin.strip() + '"').fetchall()
 		if len(person) == 0:
-			flash('One of the admins does not exist. Class not added')
-			return redirect(url_for('professor'))
+			return json.dumps({'status':'incorrect', 'flash':'One of the admins does not exist. Class not added.'})
 	try:
 		g.db.execute('insert into Class (class_name, class_key, class_admin) values (?, ?, ?)', [class_name, class_key, class_admins])
-		print "reached"
 		g.db.execute('insert into Subscribes (username, class_name) values (?, ?)', [username, class_name])
 		g.db.commit()
-		flash('New class added')
+		return json.dumps({'status':'OK', 'flash':'New class added', 'class_name':class_name, 'class_key':class_key, 'class_admin':class_admins})
 	except:
-		flash('This class already exists')
-	return redirect(url_for('professor'))
+		return json.dumps({'status':'exists', 'flash':'This class already exists'})
 
 
 @app.route('/delete_class', methods=['POST'])
@@ -243,24 +240,20 @@ def subscribe():
 	class_key = request.form['class_key']
 	username = current_user.username
 	if len(class_name) == 0:
-		flash('No class name received and not subscribed')
-		return redirect(url_for('professor'))
+		return json.dumps({'status':'no_class', 'flash':'No class name received and not subscribed'})
 	if len(class_key) == 0:
-		flash('No class key received and not subscribed')
-		return redirect(url_for('professor'))
+		return json.dumps({'status':'no_key', 'flash':'No class key received and not subscribed'})
 	cur = g.db.execute('select * from Class where class_name ="' + class_name + '"')
 	classes = cur.fetchall()
 	if len(classes) == 0:
-		print 'reached'
-		flash('This class does not exist')
-		return redirect(url_for('professor'))
+		return json.dumps({'status':'not_exist', 'flash':'This class does not exist'})
 	if class_key != classes[0][1]:
-		flash('The key entered is not correct')
-		return redirect(url_for('professor'))
+		return json.dumps({'status':'wrong_key', 'flash':'The key entered is not correct'})
 	g.db.execute('insert into Subscribes (username, class_name) values (?, ?)',[username, class_name])
 	g.db.commit()
-	flash('Subcribed to class')
-	return redirect(url_for('professor'))
+	cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
+	class_admin = cur.fetchall()[0][0]
+	return json.dumps({'status':'OK', 'flash':'Subcribed to class', 'class_name':class_name, 'class_key':class_key, 'class_admin':class_admin})
 
 @app.route('/unsubscribe', methods=['POST'])
 def unsubscribe():
