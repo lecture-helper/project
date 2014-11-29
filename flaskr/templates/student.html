@@ -1,23 +1,79 @@
 {% extends "user.html" %}
 {% block body %}
-    <form action="{{ url_for('add_question') }}" method=post class=add-question>
-      <dl>
-	<dt>Username: {{ current_user.username }}
-	<dd><textarea name=username rows=5 cols=40></textarea>
-        <dt>Question:
-        <dd><textarea name=question rows=5 cols=40></textarea>
-	<dt>Class:
-	<dd><textarea name=class_name rows=5 cols=40></textarea>
-	<dt>Confusion Level:
-	<dd><textarea name=confusion rows=5 cols=40></textarea>
-        <dd><input type=submit value=Ask>
-      </dl>
-    </form>
-  <div class=entries>
-  {% for question in questions %}
-    <h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }},{{question.confusion}}
+  <h2>Classes</h2>
+  <div id="classes" class=entries>
+  {% for class in classes %}
+    <dl id="registered-class">
+      <dt><a class=classname id="classname" href="{{url_for('student_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> <button id="unsubscribe">Unsubscribe</button> </dt>
+    </dl>
   {% else %}
-    <em>No questions have been asked</em>
+    <!--<em>No classes</em>-->
   {% endfor %}
   </div>
+  <br>
+  <hr>
+  <br>
+  <h2>Subscribe to an Existing Class</h2>
+  <form action="{{ url_for('subscribe') }}" id="subscribe-class" method=post class=subscribe-class>
+    <dl>
+      <dt>Class Name:
+      <dd><textarea name="class_name" rows=1 cols=40></textarea>
+      <dt>Class Key:
+      <dd><textarea name="class_key" rows=1 cols=40></textarea>
+      <dd><input type=submit value="Subscribe">
+    </dl>
+  </form> 
+
+  <script>
+    /*AJAX for subscribing to a class*/
+    $(document).on('submit', "form#subscribe-class", function(){
+      var datastring = $(this).serialize();
+      $.ajax({ 
+          url: "{{ url_for('subscribe') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "OK"){
+              var url = "{{url_for('student_class', username=current_user.username, class_name1=" + jobject.class_name + ")}}";
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <button id='unsubscribe'>Unsubscribe</button></dt></dl>");
+            }
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+
+    /*AJAX for unsubscribing from a class*/
+    $(document).on('click', "#unsubscribe", function(){
+      var classname = $(this).prevAll("a#classname:first").text();
+      datastring = "class_name=" + classname;
+      $.ajax({ 
+          url: "{{ url_for('unsubscribe') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            var toRemove = $(this).parent().parent();
+            toRemove.remove();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+  </script>
 {% endblock %}
