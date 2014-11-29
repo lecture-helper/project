@@ -350,33 +350,10 @@ def add_question():
 	cur = g.db.execute('select question_id from Question order by question_id desc limit 1')
 	qid = cur.fetchall()[0][0]
 	g.db.execute('insert into Asks (question_id, username) values(?,?)',[qid, username])
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	g.db.execute('insert into Asked_in (question_id, class_name) values (?, ?)',[qid, class_name1])	
 	g.db.commit()
 	tags = " ".join(formatTag(tag))
 	return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':formatDate(date), 'time':formatTime(time), 'confusion':confusion, 'tag':tags})
-=======
-=======
->>>>>>> parent of 48874a0... done with both views
-=======
->>>>>>> parent of 48874a0... done with both views
-	try:
-		g.db.execute('insert into Asked_in (question_id, class_name) values (?, ?)',[qid, class_name1])	
-		flash('New question added to class')
-	except:
-		flash('Class does not exist. Question not added.')
-	g.db.commit()
-	return redirect(url_for('student'))
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 48874a0... done with both views
-=======
->>>>>>> parent of 48874a0... done with both views
-=======
->>>>>>> parent of 48874a0... done with both views
-
 
 if __name__ == '__main__':
 	app.run()
