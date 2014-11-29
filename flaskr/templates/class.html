@@ -1,26 +1,12 @@
 {% extends "user.html" %}
 {% block body %}
 	<br>
-	<a href="{{url_for('professor')}}">Go Back</a>
-	<br>
-	<br>
 	<h2>{{class_name}}</h2>
 	<div class=entries>
 	{% for question in questions %}
-		<h3>{{ question.text }}</h3>{{ question.date }}, {{ question.time }}<br>
-    	Confusion: {{question.confusion}} | Tags: 
-	    {% for tag in question.tags %}
-	    {{tag}}
-	    {% endfor %}
-	    <br>
+		<h2>{{ question.text }}</h2>{{ question.date }},{{ question.time }}
 	{% else %}
-		<!--<em>No questions have been asked</em>-->
+		<em>No questions have been asked</em>
 	{% endfor %}
 	</div>
-
-	<script>
-	setTimeout(function(){
-   		window.location.reload(1);
-	}, 5000);
-	</script>
 {% endblock %}
