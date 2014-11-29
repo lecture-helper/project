@@ -1,0 +1,66 @@
+{% extends "user.html" %}
+{% block body %}
+  <br>
+  <a href="{{url_for('student')}}">Go Back</a>
+  <br>
+  <br>
+  <h2>{{class_name}}</h2>
+  <form action="{{ url_for('add_question') }}" id="add-question" method=post class=add-question>
+    <dl>
+      <dt>Question:</dt>
+      <dd><textarea name="question" rows=4 cols=40></textarea></dd>
+    	<dd><input type=hidden name="class_name" value="{{class_name}}"></dd>
+      <br>
+      <dt>Tags:</dt>
+      <dd><textarea name="tag" rows=1 cols=40></textarea></dd>
+      <dd>(add a "#" before each tag)</dd>
+      <br>
+    	<dt>Confusion Level: </dt>
+      <dd>Low <input type="range" class="slider" name="confusion" id="confusion" value="1" min="0" max="3" step="1" data-show-value="true"> High</dd>
+      <br>
+      <dt><input type=submit value=Ask></dt>
+    </dl>
+  </form>
+  <br>
+  <hr>
+  <br>
+  <h2>Questions</h2>
+  <div id="questions" class=entries>
+  {% for question in questions %}
+    <h3>{{ question.text }}</h3>{{ question.date }}, {{ question.time }}<br>
+    Confusion: {{question.confusion}} | Tags: 
+    {% for tag in question.tags %}
+    {{tag}}
+    {% endfor %}
+    <br>
+  {% else %}
+    <!--<em>No questions have been asked</em>-->
+  {% endfor %}
+  </div>
+  <script>
+    /*AJAX for subscribing to a class*/
+    $(document).on('submit', "form#add-question", function(){
+      var datastring = $(this).serialize();
+      $.ajax({ 
+          url: "{{ url_for('add_question') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "OK"){
+              $("div#questions").prepend("<h3>" + jobject.text + "</h3>" + jobject.date + ", " + jobject.time + "<br>Confusion: " + jobject.confusion + " | Tags: " + jobject.tag + "<br>");
+            }
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+  </script>
+{% endblock %}

@@ -26,16 +26,18 @@
       </dd>
     </dl>
   {% else %}
-    <em>No classes</em>
+    <!--<em>No classes</em>-->
   {% endfor %}
   </div>
+  <br>
+  <hr>
   <br>
   <h2>Add a New Class</h2>
   <form action="{{ url_for('add_class') }}" id="add-class" method=post class=add-class>
     <dl>
       <dt>Class Name:
       <dd><textarea name="class_name" rows=1 cols=40></textarea>
-	    <dt>Class Key:
+      <dt>Class Key:
       <dd><textarea name="class_key" rows=1 cols=40></textarea>
       <dt>Admin(s):
       <dd><textarea name="class_admins" rows=1 cols=40></textarea>
@@ -82,7 +84,6 @@
       this.reset()
       return false;
     });
-
     /*AJAX for subscribing to a class*/
     $(document).on('submit', "form#subscribe-class", function(){
       var datastring = $(this).serialize();
@@ -108,8 +109,6 @@
       this.reset()
       return false;
     });
-
-
     /*AJAX for unsubscribing from a class*/
     $(document).on('click', "#unsubscribe", function(){
       var classname = $(this).prevAll("a#classname:first").text();
@@ -134,7 +133,6 @@
       this.reset()
       return false;
     });
-
     /*AJAX for deleting a class*/
     $(document).on('click', "#delete", function(){
       var classname = $(this).prevAll("a#classname:first").text();
@@ -161,17 +159,14 @@
       this.reset()
       return false;
     });
-
     /*For showing and hiding key form*/
     $(document).on('click', "button#change-key", function(){
       $(this).next("#key-form").toggle();
     });
-
     /*For showing and hiding admin form*/
     $(document).on('click', "button#change-admin", function(){
       $(this).next("#admin-form").toggle();
     });
-
     /*AJAX for changing a class key*/
     $(document).on('submit', "form#key-form", function(event){
       var datastring = $(this).serialize();
@@ -196,7 +191,6 @@
       this.reset()
       return false;
     });
-
     /*AJAX for changing class admins*/
     $(document).on('submit', "form#admin-form", function(event){
       var datastring = $(this).serialize();
@@ -222,7 +216,6 @@
       this.reset()
       return false;
     });
-
     /*For hiding a form when user clicks outside of it*/
     $(document.body).click(function(e){
       if(e.target.id != "newkey" && e.target.id !="change-key")
@@ -232,4 +225,3 @@
     });
   </script>
 {% endblock %}
-

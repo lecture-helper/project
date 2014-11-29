@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Log In</h2>
+  <form action="{{ url_for('submit_login') }}" method=post class=submit-login>
+    <dl>
+      <dt>Username:
+      <dd><input type="text" name="username" size="60"></textarea>
+      <dt>Password:
+      <dd><input type="password" name="password" size="60">
+      <dd><input type=submit value="Login">
+    </dl>
+  </form>
+  <br>
+  <hr>
+  <br>
+  <h2>Sign Up</h2>
+  <form action="{{ url_for('add_user') }}" method=post class=add-person>
+    <dl>
+      <dt>Email:
+      <dd><input type="text" name="email" size="60"></textarea>
+      <dt>Username:
+      <dd><input type="text" name="username" size="60"></textarea>
+	    <dt>Password:
+      <dd><input type="password" name="password" size="60">
+      <dt>Professor or Student?
+        <input type="radio" name="type" value="Student" checked>Student
+        <input type="radio" name="type" value="Professor">Professor<br>
+      <dd><input type=submit value="Sign Up">
+    </dl>
+  </form>
+  <br>
+{% endblock %}
