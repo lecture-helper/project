@@ -368,7 +368,7 @@ def add_question():
 		g.db.execute('insert into Asked_in (question_id, class_name) values (?, ?)',[qid, class_name1])	
 		g.db.commit()
 		tags = " ".join(formatTag(tag))
-		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':date, 'time':time, 'confusion':confusion, 'tag':tags})
+		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':formatDate(date), 'time':formatTime(time), 'confusion':confusion, 'tag':tags})
 	except:
 		return json.dumps({'status':'no_class', 'flash':'Class does not exist. Question not added.'})
 
