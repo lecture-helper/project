@@ -72,22 +72,22 @@ def formatTime(t):
 	meridiem = {0:'am', 1:'pm'}
 	return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
 
-def formatTag(tags):
-	return [tag.strip() for tag in tags.split('#')]
-
 
 
 ##############################Professor Code########################################
-@app.route('/')
-def home():
-	from flask.ext.login import current_user
-	if not current_user.is_authenticated():
-		return render_template('index.html')
-	else:
-		if current_user.isStudent:
-			return redirect(url_for('student'))
-		else:
-			return redirect(url_for('professor'))
+@app.route('/temp')
+def temp():
+	return render_template('temp.html')
+
+@app.route('/add_temp', methods=['POST'])
+def add_temp():
+	username = request.form['username']
+	password = request.form['password']
+	student_prof = request.form['student_prof']
+	cur = g.db.execute('insert into Person(type, username, password) values (?,?,?)', [student_prof, username, password])
+	g.db.commit()
+	flash('Person added')
+	return redirect(url_for('temp'))
 
 @app.route('/signup')
 def signup():
@@ -114,13 +114,13 @@ def add_user():
 		return redirect(url_for('login'))
 	except:
 		flash('Error: Username already exists - select new username')
-		return redirect(url_for('home'))
+		return redirect(url_for('signup'))
 
 @app.route('/logout')
 def logout():
 	from flask.ext.login import logout_user
 	logout_user()
-	return redirect(url_for('home'))
+	return redirect(url_for('login'))
 
 @app.route('/login')
 def login():
@@ -142,7 +142,7 @@ def submit_login():
 	person = [dict(type=row[0]) for row in cur.fetchall()]
 	if len(person) == 0:
 		flash('Incorrect username or password')
-		return redirect(url_for('home'))
+		return redirect(url_for('login'))
 	user = User(username, person[0]['type'])
 	from flask.ext.login import login_user
 	login_user(user)
@@ -171,8 +171,8 @@ def professor_class(username, class_name1):
 		return redirect(url_for('login'))
 	
 	if current_user.isStudent: return redirect(url_for('student'))
-	cur = g.db.execute('select question_text, question_date, question_time,question_confusion, question_tag from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
-	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
+	cur = g.db.execute('select question_text, question_date, question_time,question_confusion from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
+	questions = [dict(text=row[0], date=row[1], time=row[2], confusion=row[3]) for row in cur.fetchall()]
 	prof_username = current_user.username
 	return render_template('class.html', questions=questions, class_name=class_name1)
 
@@ -235,7 +235,7 @@ def subscribe():
 	if not current_user.is_authenticated():
 		return redirect(url_for('login'))
 	
-	#if current_user.isStudent: return redirect(url_for('student'))
+	if current_user.isStudent: return redirect(url_for('student'))
 	class_name = request.form['class_name']
 	class_key = request.form['class_key']
 	username = current_user.username
@@ -261,13 +261,14 @@ def unsubscribe():
 	if not current_user.is_authenticated():
 		return redirect(url_for('login'))
 
-	#if current_user.isStudent: return redirect(url_for('student'))
+	if current_user.isStudent: return redirect(url_for('student'))
 	class_name = request.form['class_name']
+	print class_name
 	username = current_user.username
-	#cur = g.db.execute('select * from Class where class_name ="' + class_name + '"')
-	#if len(cur.fetchall()) == 0:
-	#	flash('This class does not exist')
-	#	return redirect(url_for('professor'))
+	cur = g.db.execute('select * from Class where class_name ="' + class_name + '"')
+	if len(cur.fetchall()) == 0:
+		flash('This class does not exist')
+		return redirect(url_for('professor'))
 	g.db.execute('Delete from Subscribes where Subscribes.username="' + username + '" AND Subscribes.class_name="' + class_name + '"')
 	g.db.commit()
 	#flash('Unsubscribed from class')
@@ -327,50 +328,35 @@ def student():
 	if not current_user.is_authenticated():
 		return redirect(url_for('login'))
 	if current_user.isProfessor: return redirect(url_for('professor'))
-	cur = g.db.execute('select Class.class_name from Class, Subscribes where Subscribes.class_name=Class.class_name AND Subscribes.username="' + current_user.username + '"')
-	classes = [dict(class_name=row[0]) for row in cur.fetchall()]
-	return render_template('student.html', classes=classes)
-
-@app.route('/student_class/<username>/<class_name1>')
-def student_class(username, class_name1):
-	from flask.ext.login import current_user
-	if not current_user.is_authenticated():
-		return redirect(url_for('login'))
-	if current_user.isProfessor: return redirect(url_for('professor'))
 	username = current_user.username
-	cur = g.db.execute('select question_text, question_date, question_time, question_confusion, question_tag from Question where Question.question_id IN (select question_id from Asked_in where Asked_in.class_name="'+ class_name1 +'") order by question_date desc, question_time desc')
-	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
-	return render_template('questions.html', questions=questions, class_name = class_name1)
+	cur = g.db.execute('select question_text, question_date, question_time, question_confusion from Question where Question.question_id IN (select question_id from Asked_in) order by question_date desc, question_time desc')
+	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3]) for row in cur.fetchall()]
+	return render_template('student.html', questions=questions)
 
 
 @app.route('/add_question', methods=['POST'])
 def add_question():
-	from flask.ext.login import current_user
-	if not current_user.is_authenticated():
-		return redirect(url_for('login'))
-	if current_user.isProfessor: return redirect(url_for('professor'))
 	txt = request.form['question']
 	class_name1 = request.form['class_name']
 	confusion = request.form['confusion']
-	username = current_user.username
-	tag = request.form['tag']
+	username = request.form['username']
 	if len(txt) == 0:
-		return json.dumps({'status':'no_question', 'flash': 'No question received'})
+		flash('Empty question received and not inserted into db')
+		return redirect(url_for('student'))
 	dt = datetime.datetime.now()
 	date = str(dt.date())
 	time = str(dt.time())
-	g.db.execute('insert into Question (question_text, question_date, question_time, question_confusion, question_tag) values (?, ?, ?, ?, ?)', [txt, date, time, confusion, tag])
+	g.db.execute('insert into Question (question_text, question_date, question_time, question_confusion) values (?, ?, ?,?)', [txt, date, time,confusion])
 	cur = g.db.execute('select question_id from Question order by question_id desc limit 1')
 	qid = cur.fetchall()[0][0]
 	g.db.execute('insert into Asks (question_id, username) values(?,?)',[qid, username])
-	g.db.commit()
 	try:
 		g.db.execute('insert into Asked_in (question_id, class_name) values (?, ?)',[qid, class_name1])	
-		g.db.commit()
-		tags = " ".join(formatTag(tag))
-		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':date, 'time':time, 'confusion':confusion, 'tag':tags})
+		flash('New question added to class')
 	except:
-		return json.dumps({'status':'no_class', 'flash':'Class does not exist. Question not added.'})
+		flash('Class does not exist. Question not added.')
+	g.db.commit()
+	return redirect(url_for('student'))
 
 
 if __name__ == '__main__':
