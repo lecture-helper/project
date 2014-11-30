@@ -1,10 +1,27 @@
 {% extends "user.html" %}
 {% block body %}
 	<br>
+	<br>
+	<a href="{{url_for('timeline_main_page', username1 = current_user.username, class_name1 = class_name)}}">Timelines</a>
+	<br>
+	<br>
 	<a href="{{url_for('professor')}}">Go Back</a>
 	<br>
 	<br>
-	<h2>{{class_name}}</h2>
+	<br>
+	<h2>Best Questions to Answer at the Moment: </h2>
+	<br>
+	<div class = entries>
+	{% for question in nlp_result %}
+		<h3>{{ question }}</h3>
+	{% else %}
+		<!--<em>No questions have been asked</em>-->
+	{% endfor %}
+	</div>
+
+	<br>
+	<h2>All Questions: </h2>
+	<br>
 	<div class=entries>
 	{% for question in questions %}
 		<h3>{{ question.text }}</h3>{{ question.date }}, {{ question.time }}<br>
@@ -17,6 +34,7 @@
 		<!--<em>No questions have been asked</em>-->
 	{% endfor %}
 	</div>
+
 
 	<script>
 	setTimeout(function(){

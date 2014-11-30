@@ -1,0 +1,94 @@
+{% extends "user.html" %}
+{% block body %}
+<!DOCTYPE HTML>
+<html>
+<h3> {{exist_questions}}</h3>
+<head>  
+  <script type="text/javascript">
+
+  window.onload = function () {
+  	var questions_yellow = {{questions_y|tojson}};
+  	var questions_orange = {{questions_o|tojson}};
+  	var questions_red = {{questions_r|tojson}}
+  	var class_name = {{class_name|tojson}}
+  	var date = {{date|tojson}}
+    var chart = new CanvasJS.Chart("chartContainer",
+    {
+      zoomEnabled: true,
+      title:{
+        text: "Lecture Timeline for the "+ class_name + " (" + date + ")"
+      },
+      axisX: {
+        title:"",
+        valueFormatString: "#.#",
+        maximum: 75,
+        minimum: -3,
+        gridThickness: 2,
+        labelFontColor: 'transparent',
+	tickThickness: 1,
+        gridColor: "transparent",
+        tickColor: "transparent",
+        lineThickness: 1
+      },
+      axisY:{
+        title: "",              
+        gridThickness: 2,
+        labelFontColor: 'transparent',
+	tickThickness: 1,
+        gridColor: "transparent",
+        tickColor: "transparent",
+        lineThickness: 0,
+        valueFormatString:"#",
+        maximum: 35,
+        interval: 1
+        
+      },
+
+      data: [
+      {        
+        type: "bubble",
+        toolTipContent: "<span style='\"'color: {'indigo'};'\"'><strong>{label}</strong></span>",
+        color: 'orange',
+        fillOpacity: .7,
+
+        dataPoints: questions_orange
+      }, 
+      {
+      type: "bubble", 
+        toolTipContent: "<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>",
+        color: 'red',
+        fillOpacity: .7,
+
+        dataPoints: questions_red
+      },
+      {type: "bubble",
+      color: 'yellow',
+      fillOpacity: .7,
+
+      toolTipContent: "<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>",
+      dataPoints: questions_yellow
+
+    },
+       {        
+        type: "bubble",
+        fillOpacity: .1,
+        color: 'blue',
+        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        dataPoints: [
+        ]
+      }
+      ]
+    });
+
+chart.render();
+}
+</script>
+<script type="text/javascript" src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</head>
+<body>
+  <div id="chartContainer" style="height: 300px; width: 100%;">
+  </div>
+</body>
+
+</html>
+{% endblock %}

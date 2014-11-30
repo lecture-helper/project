@@ -1,5 +1,7 @@
-# all the imports
 import os
+import sys
+#import nltk #make sure to do the formal download for this with the GUI 
+#import nlp_script
 import uuid
 from flask import Flask, request, session, g, redirect, url_for, \
 	 abort, render_template, flash
@@ -7,7 +9,10 @@ from contextlib import closing
 from sqlite3 import dbapi2 as sqlite3
 import datetime
 from user import User
+import time
 import json
+import parseQuestions 
+
 from flask.ext.login import *
 
 
@@ -68,9 +73,10 @@ def formatDate(d):
 	return '{0} {1}, {2}'.format(monthDict[int(li[1])], li[2], li[0])
 
 def formatTime(t):
-	li = t.split(':')
-	meridiem = {0:'am', 1:'pm'}
-	return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
+	return t
+	#li = t.split(':')
+	#meridiem = {0:'am', 1:'pm'}
+	#return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
 
 def formatTag(tags):
 	return [tag.strip() for tag in tags.split('#')]
@@ -171,11 +177,80 @@ def professor_class(username, class_name1):
 		return redirect(url_for('login'))
 	
 	if current_user.isStudent: return redirect(url_for('student'))
+	#cur_time_in_minutes = 
+	question_query_result = g.db.execute('select question_text from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
+	question_list = []
+	for row in question_query_result: 
+		question_list.append(str(row[0]))
+	print question_list
+	nlp_script_question_results = parseQuestions.relevantQuestions(question_list, 3)
+
 	cur = g.db.execute('select question_text, question_date, question_time,question_confusion, question_tag from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
 	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 	prof_username = current_user.username
-	return render_template('class.html', questions=questions, class_name=class_name1)
+	return render_template('class.html', questions=questions, class_name=class_name1, username = prof_username, nlp_result = nlp_script_question_results)
 
+@app.route('/professor_class/<username1>/<class_name1>/timeline/')
+def timeline_main_page(username1, class_name1):
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	if current_user.isStudent: return redirect(url_for('student'))
+	prof_username = current_user.username
+	dates_temp= g.db.execute('select question_date from Question where (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")) order by question_date desc')
+	dates = []
+	for row in dates_temp.fetchall():
+		if(row[0] not in dates):
+			dates.append(row[0])
+
+	return render_template('timeline_main_page.html', username = prof_username, class_name = class_name1, date_list = dates)
+
+@app.route('/professor_class/<username>/<class_name1>/timeline/<question_date1>')
+def timeline(username, class_name1, question_date1):
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	if current_user.isStudent: return redirect(url_for('student'))
+
+	cur = g.db.execute('select question_text, question_time, question_date, question_confusion from Question where question_date = (?) AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
+	cur_yellow = g.db.execute('select question_text, question_time,question_date, question_confusion from Question where question_date = (?) AND question_confusion = 1 AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
+	cur_orange = g.db.execute('select question_text, question_time, question_date,question_confusion from Question where question_date = (?) AND question_confusion = 2 AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
+	cur_red = g.db.execute('select question_text, question_time, question_date, question_confusion from Question where question_date = (?) AND question_confusion = 3 AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
+	time_list = []
+	for row in cur: 
+		time_list.append(parse_time(row[1], row[2]))
+	min_time = 0
+	exist_questions1  = " "
+	if(len(time_list)>0): 
+		min_time = min(time_list)
+	else: 
+		exist_questions1 = "No Questions Were Asked"
+	
+	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]+3, z=20) for row in cur_yellow.fetchall()]
+	#questions_yellow = [dict(x=2, y=1, z=30, label=row[0] for row in cur_yellow.fetchall()]
+
+	#questions_orange = [dict(x=1, y=2, z=30, label=row[0] for row in cur_orange.fetchall()]
+	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]+3, z=20) for row in cur_orange.fetchall()]
+
+	#questions_red = [dict(x=0, y=3, z=30, label=row[0] for row in cur_red.fetchall()]
+	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]+3, z=20) for row in cur_red.fetchall()]
+	
+	prof_username = username
+
+	return render_template('timeline.html', questions_y=questions_yellow, questions_o = questions_orange, questions_r = questions_red, class_name=class_name1, prof_username = prof_username, date = question_date1, exist_questions = exist_questions1)
+
+def parse_time(t, d): 
+	new_time = datetime.datetime.strptime(t, '%H:%M:%S.%f')
+	new_date = datetime.datetime.strptime(d, '%Y-%m-%d')
+	month_temp = new_date.month 
+	day_temp = new_date.day
+	year_temp = new_date.year 
+	hour_temp = new_time.hour
+	min_temp = new_time.minute
+	dt2 = datetime.datetime(year_temp, month_temp, day_temp, hour_temp, min_temp)
+	time_seconds = time.mktime(dt2.timetuple())+1e-6*new_time.microsecond
+	time_minutes = time_seconds/60
+	return time_minutes 
 
 @app.route('/add_class', methods=['POST'])
 def add_class():
