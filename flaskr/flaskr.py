@@ -227,14 +227,14 @@ def timeline(username, class_name1, question_date1):
 	else: 
 		exist_questions1 = "No Questions Were Asked"
 	
-	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]+3, z=20) for row in cur_yellow.fetchall()]
+	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]*3, z=20) for row in cur_yellow.fetchall()]
 	#questions_yellow = [dict(x=2, y=1, z=30, label=row[0] for row in cur_yellow.fetchall()]
 
 	#questions_orange = [dict(x=1, y=2, z=30, label=row[0] for row in cur_orange.fetchall()]
-	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]+3, z=20) for row in cur_orange.fetchall()]
+	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]*3, z=20) for row in cur_orange.fetchall()]
 
 	#questions_red = [dict(x=0, y=3, z=30, label=row[0] for row in cur_red.fetchall()]
-	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]+3, z=20) for row in cur_red.fetchall()]
+	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]*3, z=20) for row in cur_red.fetchall()]
 	
 	prof_username = username
 
