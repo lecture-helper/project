@@ -72,6 +72,11 @@ def formatDate(d):
 	li = d.split('-')
 	return '{0} {1}, {2}'.format(monthDict[int(li[1])], li[2], li[0])
 
+def formatTime2(t):
+	li = t.split(':')
+	meridiem = {0:'am', 1:'pm'}
+	return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
+
 def formatTime(t):
 	return t
 	#li = t.split(':')
@@ -109,10 +114,6 @@ def add_user():
 	password = request.form['password']
 	email = request.form['email']
 
-	# check if username already used
-	#cur = g.db.execute('select username from Person where username = (?)', [username])
-	#user = [dict(class_name=row[0]) for row in cur.fetchall()]
-	#if len(user) == 0:
 	try:
 		cur = g.db.execute('insert into Person(type, username, password, email) values (?,?,?,?)', [type, username, password, email])
 		g.db.commit()
@@ -186,7 +187,7 @@ def professor_class(username, class_name1):
 	nlp_script_question_results = parseQuestions.relevantQuestions(question_list, 3)
 
 	cur = g.db.execute('select question_text, question_date, question_time,question_confusion, question_tag from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
-	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
+	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime2(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 	prof_username = current_user.username
 	return render_template('class.html', questions=questions, class_name=class_name1, username = prof_username, nlp_result = nlp_script_question_results)
 
@@ -404,17 +405,19 @@ def student():
 	if current_user.isProfessor: return redirect(url_for('professor'))
 	cur = g.db.execute('select Class.class_name from Class, Subscribes where Subscribes.class_name=Class.class_name AND Subscribes.username="' + current_user.username + '"')
 	classes = [dict(class_name=row[0]) for row in cur.fetchall()]
+	print classes
 	return render_template('student.html', classes=classes)
 
 @app.route('/student_class/<username>/<class_name1>')
 def student_class(username, class_name1):
+	print class_name1
 	from flask.ext.login import current_user
 	if not current_user.is_authenticated():
 		return redirect(url_for('login'))
 	if current_user.isProfessor: return redirect(url_for('professor'))
 	username = current_user.username
 	cur = g.db.execute('select question_text, question_date, question_time, question_confusion, question_tag from Question where Question.question_id IN (select question_id from Asked_in where Asked_in.class_name="'+ class_name1 +'") order by question_date desc, question_time desc')
-	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
+	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime2(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 	return render_template('questions.html', questions=questions, class_name = class_name1)
 
 

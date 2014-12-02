@@ -35,6 +35,7 @@
           context: this,
           success: function(data2){
             var jobject = JSON.parse(data2);
+            console.log(jobject);
             var flash = jobject.flash;
             $("div#flash").html(flash);
             $("div#flash").show().delay(5000).fadeOut();
