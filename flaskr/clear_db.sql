@@ -1,0 +1,6 @@
+DROP TABLE Person;
+DROP TABLE Question;
+DROP TABLE Class;
+DROP TABLE Asks;
+DROP TABLE Subscribes;
+DROP TABLE Asked_in;

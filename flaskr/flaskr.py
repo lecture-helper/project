@@ -14,6 +14,7 @@ import json
 import parseQuestions 
 
 from flask.ext.login import *
+import hashlib
 
 
 # configuration
@@ -72,16 +73,10 @@ def formatDate(d):
 	li = d.split('-')
 	return '{0} {1}, {2}'.format(monthDict[int(li[1])], li[2], li[0])
 
-def formatTime2(t):
+def formatTime(t):
 	li = t.split(':')
 	meridiem = {0:'am', 1:'pm'}
 	return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
-
-def formatTime(t):
-	return t
-	#li = t.split(':')
-	#meridiem = {0:'am', 1:'pm'}
-	#return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
 
 def formatTag(tags):
 	return [tag.strip() for tag in tags.split('#')]
@@ -110,9 +105,23 @@ def add_user():
 	if type == 'student': type = 0
 	else: type = 1
 
-	username = request.form['username']
+	username = request.form['username'].strip()
 	password = request.form['password']
-	email = request.form['email']
+	email = request.form['email'].strip()
+	if len(email.split('@')) != 2: 
+		flash('Error: Not a valid email')
+		return redirect(url_for('home'))
+	if len(email) < 6:
+		flash('Error: Email too short to be valid')
+		return redirect(url_for('home'))
+	if email[len(email)-4:len(email)] != '.edu':
+		flash('Error: Please use a .edu email')
+		return redirect(url_for('home'))
+
+	# password encryption
+	m = hashlib.sha384()
+	m.update(password)
+	password = unicode(m.hexdigest())
 
 	try:
 		cur = g.db.execute('insert into Person(type, username, password, email) values (?,?,?,?)', [type, username, password, email])
@@ -143,8 +152,14 @@ def login():
 
 @app.route('/submit_login', methods=['POST'])
 def submit_login():
-	username = request.form['username']
+	username = request.form['username'].strip()
 	password = request.form['password']
+
+	# password encryption
+	m = hashlib.sha384()
+	m.update(password)
+	password = unicode(m.hexdigest())
+
 	cur = g.db.execute('select type from Person where username = (?) and password = (?)', [username, password])
 	person = [dict(type=row[0]) for row in cur.fetchall()]
 	if len(person) == 0:
@@ -181,13 +196,14 @@ def professor_class(username, class_name1):
 	#cur_time_in_minutes = 
 	question_query_result = g.db.execute('select question_text from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
 	question_list = []
-	for row in question_query_result: 
+	for i, row in enumerate(question_query_result): 
 		question_list.append(str(row[0]))
+		if i > 10: break
 	print question_list
 	nlp_script_question_results = parseQuestions.relevantQuestions(question_list, 3)
 
 	cur = g.db.execute('select question_text, question_date, question_time,question_confusion, question_tag from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
-	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime2(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
+	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 	prof_username = current_user.username
 	return render_template('class.html', questions=questions, class_name=class_name1, username = prof_username, nlp_result = nlp_script_question_results)
 
@@ -261,9 +277,9 @@ def add_class():
 	
 	if current_user.isStudent: return redirect(url_for('student'))
 	username = current_user.username
-	class_name = request.form['class_name']
-	class_key = request.form['class_key']
-	class_admins = request.form['class_admins']
+	class_name = request.form['class_name'].strip()
+	class_key = request.form['class_key'].strip()
+	class_admins = request.form['class_admins'].strip()
 	if len(class_name) == 0:
 		flash('No class name received. Class not added')
 		return redirect(url_for('professor'))
@@ -293,7 +309,7 @@ def delete_class():
 		return redirect(url_for('login'))
 	
 	if current_user.isStudent: return redirect(url_for('student'))
-	class_name = request.form['class_name']
+	class_name = request.form['class_name'].strip()
 	cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
 	class_admins = cur.fetchall()[0][0]
 	admins = [admin.strip() for admin in class_admins.split(',')]
@@ -312,8 +328,8 @@ def subscribe():
 		return redirect(url_for('login'))
 	
 	#if current_user.isStudent: return redirect(url_for('student'))
-	class_name = request.form['class_name']
-	class_key = request.form['class_key']
+	class_name = request.form['class_name'].strip()
+	class_key = request.form['class_key'].strip()
 	username = current_user.username
 	if len(class_name) == 0:
 		return json.dumps({'status':'no_class', 'flash':'No class name received and not subscribed'})
@@ -342,7 +358,7 @@ def unsubscribe():
 		return redirect(url_for('login'))
 
 	#if current_user.isStudent: return redirect(url_for('student'))
-	class_name = request.form['class_name']
+	class_name = request.form['class_name'].strip()
 	username = current_user.username
 	#cur = g.db.execute('select * from Class where class_name ="' + class_name + '"')
 	#if len(cur.fetchall()) == 0:
@@ -361,11 +377,11 @@ def update_key():
 		return redirect(url_for('login'))
 	
 	if current_user.isStudent: return redirect(url_for('student'))
-	newkey = request.form['newkey']
-	oldkey = request.form['oldkey']
+	newkey = request.form['newkey'].strip()
+	oldkey = request.form['oldkey'].strip()
 	if len(newkey) == 0:
 		return json.dumps({'status':'OK', 'class_key':oldkey, 'flash':'No key received'})
-	class_name = request.form['class_name']
+	class_name = request.form['class_name'].strip()
 	print class_name
 	cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
 	class_admins = cur.fetchall()[0][0]
@@ -383,9 +399,9 @@ def update_admin():
 		return redirect(url_for('login'))
 	
 	if current_user.isStudent: return redirect(url_for('student'))
-	newadmins = request.form['newadmins']
-	class_name = request.form['class_name']
-	oldadmins = request.form['oldadmin']
+	newadmins = request.form['newadmins'].strip()
+	class_name = request.form['class_name'].strip()
+	oldadmins = request.form['oldadmin'].strip()
 	if len(newadmins) == 0:
 		return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'No admins received'})
 	old_admins = [admin.strip() for admin in oldadmins.split(',')]
@@ -421,7 +437,7 @@ def student_class(username, class_name1):
 	if current_user.isProfessor: return redirect(url_for('professor'))
 	username = current_user.username
 	cur = g.db.execute('select question_text, question_date, question_time, question_confusion, question_tag from Question where Question.question_id IN (select question_id from Asked_in where Asked_in.class_name="'+ class_name1 +'") order by question_date desc, question_time desc')
-	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime2(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
+	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 	return render_template('questions.html', questions=questions, class_name = class_name1)
 
 
@@ -431,10 +447,10 @@ def add_question():
 	if not current_user.is_authenticated():
 		return redirect(url_for('login'))
 	if current_user.isProfessor: return redirect(url_for('professor'))
-	txt = request.form['question']
-	class_name1 = request.form['class_name']
-	confusion = request.form['confusion']
-	username = current_user.username
+	txt = request.form['question'].strip()
+	class_name1 = request.form['class_name'].strip()
+	confusion = request.form['confusion'].strip()
+	username = current_user.username.strip()
 	tag = request.form['tag']
 	if len(txt) == 0:
 		return json.dumps({'status':'no_question', 'flash': 'No question received'})
@@ -450,7 +466,7 @@ def add_question():
 		g.db.execute('insert into Asked_in (question_id, class_name) values (?, ?)',[qid, class_name1])	
 		g.db.commit()
 		tags = " ".join(formatTag(tag))
-		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':formatDate(date), 'time':formatTime2(time), 'confusion':confusion, 'tag':formatTag(tags)})
+		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':formatDate(date), 'time':formatTime(time), 'confusion':confusion, 'tag':formatTag(tags)})
 	except:
 		return json.dumps({'status':'no_class', 'flash':'Class does not exist. Question not added.'})
 
