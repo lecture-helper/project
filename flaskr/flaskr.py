@@ -281,7 +281,7 @@ def add_class():
 		g.db.execute('insert into Class (class_name, class_key, class_admin) values (?, ?, ?)', [class_name, class_key, class_admins])
 		g.db.execute('insert into Subscribes (username, class_name) values (?, ?)', [username, class_name])
 		g.db.commit()
-		return json.dumps({'status':'OK', 'flash':'New class added', 'class_name':class_name, 'class_key':class_key, 'class_admin':class_admins})
+		return json.dumps({'status':'OK', 'flash':'New class added', 'class_name':class_name, 'class_key':class_key, 'class_admin':class_admins, 'username':username})
 	except:
 		return json.dumps({'status':'exists', 'flash':'This class already exists'})
 
@@ -325,11 +325,15 @@ def subscribe():
 		return json.dumps({'status':'not_exist', 'flash':'This class does not exist'})
 	if class_key != classes[0][1]:
 		return json.dumps({'status':'wrong_key', 'flash':'The key entered is not correct'})
-	g.db.execute('insert into Subscribes (username, class_name) values (?, ?)',[username, class_name])
-	g.db.commit()
-	cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
-	class_admin = cur.fetchall()[0][0]
-	return json.dumps({'status':'OK', 'flash':'Subcribed to class', 'class_name':class_name, 'class_key':class_key, 'class_admin':class_admin})
+	try:
+		g.db.execute('insert into Subscribes (username, class_name) values (?, ?)',[username, class_name])
+		g.db.commit()
+		cur = g.db.execute('Select class_admin from Class where class_name="' + class_name + '"')
+		class_admin = cur.fetchall()[0][0]
+		return json.dumps({'status':'OK', 'flash':'Subcribed to class', 'class_name':class_name, 'class_key':class_key, 'class_admin':class_admin, 'username': username})
+	except:
+		return json.dumps({'status':'already_subscribed', 'flash':'You are already subscribed to this class'})
+
 
 @app.route('/unsubscribe', methods=['POST'])
 def unsubscribe():
@@ -446,7 +450,7 @@ def add_question():
 		g.db.execute('insert into Asked_in (question_id, class_name) values (?, ?)',[qid, class_name1])	
 		g.db.commit()
 		tags = " ".join(formatTag(tag))
-		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':date, 'time':time, 'confusion':confusion, 'tag':tags})
+		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':formatDate(date), 'time':formatTime2(time), 'confusion':confusion, 'tag':formatTag(tags)})
 	except:
 		return json.dumps({'status':'no_class', 'flash':'Class does not exist. Question not added.'})
 

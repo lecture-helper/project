@@ -34,14 +34,13 @@
           data: datastring,
           context: this,
           success: function(data2){
-            var jobject = JSON.parse(data2);
-            console.log(jobject);
-            var flash = jobject.flash;
+            var blah = JSON.parse(data2);
+            var flash = blah.flash;
             $("div#flash").html(flash);
             $("div#flash").show().delay(5000).fadeOut();
-            if(jobject.status == "OK"){
-              var url = "{{url_for('student_class', username=current_user.username, class_name1=" + jobject.class_name + ")}}";
-              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <button id='unsubscribe'>Unsubscribe</button></dt></dl>");
+            if(blah.status == "OK"){
+              var url = "/student_class/"+ blah.username + "/" + blah.class_name;
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <button id='unsubscribe'>Unsubscribe</button></dt></dl>");
             }
           },
           error: function(err){

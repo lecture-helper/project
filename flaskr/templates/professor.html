@@ -68,13 +68,14 @@
           data: datastring,
           context: this,
           success: function(data2){
-            var jobject = JSON.parse(data2);
-            var flash = jobject.flash;
+            var blah = JSON.parse(data2);
+            var flash = blah.flash;
             $("div#flash").html(flash);
             $("div#flash").show().delay(5000).fadeOut();
-            if(jobject.status == "OK"){
-              var url = "{{url_for('professor_class', username=current_user.username, class_name1=" + jobject.class_name + ")}}";
-              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <br><br><button id='unsubscribe'>Unsubscribe</button> <button id='delete'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + jobject.class_key + "</span> <button id='change-key'>Change Key</button><form id='key-form' class='key-form' style='display:none'><textarea name='newkey' id='newkey' rows=1 cols=40></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldkey' value='" + jobject.class_key + "'><input type=submit value='Submit'></form></dd><dd><strong>Admins:</strong> <span id='class_admin'>" + jobject.class_admin + "</span> <button id='change-admin'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><textarea name='newadmins' id='newadmins' rows=3 cols=40></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldadmin' value='" + jobject.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
+            if(blah.status == "OK"){
+              var url = "/professor_class/" + blah.username + "/" + blah.class_name;
+              console.log(typeof url);
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <br><button id='unsubscribe'>Unsubscribe</button> <button id='delete'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + blah.class_key + "</span> <button id='change-key'>Change Key</button><form id='key-form' class='key-form' style='display:none'><textarea name='newkey' id='newkey' rows=1 cols=40></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldkey' value='" + blah.class_key + "'><input type=submit value='Submit'></form></dd><dd><strong>Admins:</strong> <span id='class_admin'>" + blah.class_admin + "</span> <button id='change-admin'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><textarea name='newadmins' id='newadmins' rows=3 cols=40></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldadmin' value='" + blah.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
             }
           },
           error: function(err){
@@ -98,7 +99,7 @@
             $("div#flash").html(flash);
             $("div#flash").show().delay(5000).fadeOut();
             if(jobject.status == "OK"){
-              var url = "{{url_for('professor_class', username=current_user.username, class_name1=" + jobject.class_name + ")}}";
+              var url = "/professor_class/" + jobject.username + "/" + jobject.class_name;
               $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <br><button id='unsubscribe'>Unsubscribe</button> <button id='delete'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + jobject.class_key + "</span> <button id='change-key'>Change Key</button><form id='key-form' class='key-form' style='display:none'><textarea name='newkey' id='newkey' rows=1 cols=40></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldkey' value='" + jobject.class_key + "'><input type=submit value='Submit'></form></dd><dd><strong>Admins:</strong> <span id='class_admin'>" + jobject.class_admin + "</span> <button id='change-admin'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><textarea name='newadmins' id='newadmins' rows=3 cols=40></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldadmin' value='" + jobject.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
             }
           },

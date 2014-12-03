@@ -21,24 +21,31 @@ class_admin VARCHAR(1000)
 );
 
 CREATE TABLE Asks (
-question_id INTEGER,
+question_id INTEGER PRIMARY KEY,
 username VARCHAR(100),
 FOREIGN KEY(question_id)
 REFERENCES Question(question_id)
+ON DELETE CASCADE,
+FOREIGN KEY(username)
+REFERENCES Person(username)
 ON DELETE CASCADE
 );
 
 CREATE TABLE Subscribes (
 username VARCHAR(100),
 class_name VARCHAR(100),
+PRIMARY KEY(username, class_name),
 FOREIGN KEY(class_name)
 REFERENCES Class(class_name)
 ON DELETE CASCADE
-ON UPDATE CASCADE
+ON UPDATE CASCADE,
+FOREIGN KEY(username)
+REFERENCES Person(username)
+ON DELETE CASCADE
 );
 
 CREATE TABLE Asked_in (
-question_id INTEGER,
+question_id INTEGER PRIMARY KEY,
 class_name VARCHAR(100),
 FOREIGN KEY(class_name)
 REFERENCES Class(class_name)
@@ -48,4 +55,3 @@ FOREIGN KEY(question_id)
 REFERENCES Question(question_id)
 ON DELETE CASCADE
 );
-
