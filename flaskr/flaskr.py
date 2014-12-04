@@ -1,6 +1,6 @@
 import os
 import sys
-#import nltk #make sure to do the formal download for this with the GUI 
+import nltk #make sure to do the formal download for this with the GUI 
 #import nlp_script
 import uuid
 from flask import Flask, request, session, g, redirect, url_for, \
@@ -15,6 +15,8 @@ import parseQuestions
 
 from flask.ext.login import *
 import hashlib
+import random 
+import re
 
 
 # configuration
@@ -233,6 +235,8 @@ def timeline(username, class_name1, question_date1):
 	cur_yellow = g.db.execute('select question_text, question_time,question_date, question_confusion from Question where question_date = (?) AND question_confusion = 1 AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
 	cur_orange = g.db.execute('select question_text, question_time, question_date,question_confusion from Question where question_date = (?) AND question_confusion = 2 AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
 	cur_red = g.db.execute('select question_text, question_time, question_date, question_confusion from Question where question_date = (?) AND question_confusion = 3 AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
+	cur_tags = g.db.execute('select question_tag, question_time,question_date from Question where question_date = (?) AND (question_id IN (select question_id from Asked_in where class_name="'+class_name1+'"))', [question_date1])
+
 	time_list = []
 	for row in cur: 
 		time_list.append(parse_time(row[1], row[2]))
@@ -243,19 +247,85 @@ def timeline(username, class_name1, question_date1):
 	else: 
 		exist_questions1 = "No Questions Were Asked"
 	
-	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]*3, z=20) for row in cur_yellow.fetchall()]
+	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=row[3]*3, z=5) for row in cur_yellow.fetchall()]
 	#questions_yellow = [dict(x=2, y=1, z=30, label=row[0] for row in cur_yellow.fetchall()]
 
 	#questions_orange = [dict(x=1, y=2, z=30, label=row[0] for row in cur_orange.fetchall()]
-	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]*3, z=20) for row in cur_orange.fetchall()]
+	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=row[3]*3, z=5) for row in cur_orange.fetchall()]
 
 	#questions_red = [dict(x=0, y=3, z=30, label=row[0] for row in cur_red.fetchall()]
-	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time, y=row[3]*3, z=20) for row in cur_red.fetchall()]
+	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=row[3]*3, z=5) for row in cur_red.fetchall()]
 	
+	#tags = [dict(tag=str(row[0]),time=parse_time(row[1], row[2])-min_time, y=row[3]+15, z=40) for row in cur_tags.fetchall()]
+	max_time1 = 75
+	num_intervals = 5
+	interval = float(max_time1)/float(num_intervals)
+	interval_time_list = []
+	count = num_intervals
+	marker_time = interval
+	tag_freq_dict = {}
+	tags = {}
+	while(count>0):
+		interval_time_list.append(marker_time)
+		marker_time += interval
+		count -= 1
+	tag_dict = {15:[], 30:[], 45:[], 60:[], 75:[]}
+	for row in cur_tags.fetchall():
+		tag_time = (parse_time(row[1], row[2]) - min_time)
+		found_interval = False
+		for interval in interval_time_list:
+			if int(tag_time) <= interval: 
+				found_interval = True
+				if interval in tag_dict.keys():
+					temp_list = tag_dict[interval]
+					temp_list.append(row[0].strip('#'))
+					tag_dict[interval] = temp_list
+				else: 
+					temp_list = [row[0]]
+					tag_dict[interval] = temp_list
+			if found_interval == True: 
+				break
+	
+	tag_freq_dict = {}
+	for time_marker in tag_dict.keys():
+		tag_list = tag_dict[time_marker]
+		
+		for each in tag_list: 
+			tag_freq_dict[each] = tag_freq_dict.get(each, 0) +1
+
+
+	l15 = remove_dups(tag_dict[15.0])
+	l30 = remove_dups(tag_dict[30.0])
+	l45 = remove_dups(tag_dict[45.0])
+	l60 = remove_dups(tag_dict[60.0])
+	l75 = remove_dups(tag_dict[75.0])
+	tags1 = [dict(label=str(each), x=15.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l15]
+	tags2 = [dict(label=str(each), x=30.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l30]
+	tags3 = [dict(label=str(each), x=45.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l45]
+	tags4 = [dict(label=str(each), x=60.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l60]
+	tags5 = [dict(label=str(each), x=75.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l75]
+
+
 	prof_username = username
 
-	return render_template('timeline.html', questions_y=questions_yellow, questions_o = questions_orange, questions_r = questions_red, class_name=class_name1, prof_username = prof_username, date = question_date1, exist_questions = exist_questions1)
+	return render_template('timeline.html',tags1 = tags1, tags2=tags2, tags3 = tags3, tags4 = tags4, tags5=tags5, max_time = max_time1, questions_y=questions_yellow, questions_o = questions_orange, questions_r = questions_red, class_name=class_name1, prof_username = prof_username, date = question_date1, exist_questions = exist_questions1)
 
+def remove_dups(l):
+	set_list = set(l)
+	l = list(set_list)
+	return l
+def processTagList(input_list): 
+	noun_tag_dict = {}
+	for question in input_list: 
+		tokens = nltk.word_tokenize(question)
+		tagged = nltk.pos_tag(tokens)
+		for word in tagged: 
+			if word[1] =='NN' or word[1] == 'NNP' or word[1]== 'NNPS' or word[1]== 'PRP': #tags are just nouns for the time being
+				freq = noun_tag_dict.get(word[0], 0)
+				noun_tag_dict[word[0]] = freq +1
+	return noun_tag_dict
+def parse_tag_time():
+	return
 def parse_time(t, d): 
 	new_time = datetime.datetime.strptime(t, '%H:%M:%S.%f')
 	new_date = datetime.datetime.strptime(d, '%Y-%m-%d')

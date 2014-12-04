@@ -12,6 +12,11 @@
   	var questions_red = {{questions_r|tojson}}
   	var class_name = {{class_name|tojson}}
   	var date = {{date|tojson}}
+    var tags1 = {{tags1|tojson}}
+    var tags2 = {{tags2|tojson}}
+    var tags3 = {{tags3|tojson}}
+    var tags4 = {{tags4|tojson}}
+    var tags5 = {{tags5|tojson}}
     var chart = new CanvasJS.Chart("chartContainer",
     {
       zoomEnabled: true,
@@ -21,7 +26,7 @@
       axisX: {
         title:"",
         valueFormatString: "#.#",
-        maximum: 75,
+        maximum: 100,
         minimum: -3,
         gridThickness: 2,
         labelFontColor: 'transparent',
@@ -39,7 +44,7 @@
         tickColor: "transparent",
         lineThickness: 0,
         valueFormatString:"#",
-        maximum: 35,
+        maximum: 50,
         interval: 1
         
       },
@@ -74,9 +79,40 @@
         fillOpacity: .1,
         color: 'blue',
         toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
-        dataPoints: [
-        ]
+        dataPoints: tags1
+      },
+             {        
+        type: "bubble",
+        fillOpacity: .1,
+        color: 'blue',
+        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        dataPoints: tags2
+      },
+
+       {        
+        type: "bubble",
+        fillOpacity: .1,
+        color: 'blue',
+        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        dataPoints: tags3
+      },
+
+       {        
+        type: "bubble",
+        fillOpacity: .1,
+        color: 'blue',
+        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        dataPoints: tags4
+      },
+
+       {        
+        type: "bubble",
+        fillOpacity: .1,
+        color: 'blue',
+        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        dataPoints: tags5
       }
+
       ]
     });
 
