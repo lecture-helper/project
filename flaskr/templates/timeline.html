@@ -17,6 +17,7 @@
     var tags3 = {{tags3|tojson}}
     var tags4 = {{tags4|tojson}}
     var tags5 = {{tags5|tojson}}
+  
     var chart = new CanvasJS.Chart("chartContainer",
     {
       zoomEnabled: true,
@@ -75,41 +76,41 @@
 
     },
        {        
-        type: "bubble",
+        type: "scatter",
         fillOpacity: .1,
-        color: 'blue',
-        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        color: 'white',
+        toolTipContent:"<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>", 
         dataPoints: tags1
       },
              {        
-        type: "bubble",
+        type: "scatter",
         fillOpacity: .1,
-        color: 'blue',
-        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        color: 'white',
+        toolTipContent:"<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>", 
         dataPoints: tags2
       },
 
        {        
-        type: "bubble",
+        type: "scatter",
         fillOpacity: .1,
-        color: 'blue',
-        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        color: 'white',
+        toolTipContent:"<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>", 
         dataPoints: tags3
       },
 
        {        
-        type: "bubble",
+        type: "scatter",
         fillOpacity: .1,
-        color: 'blue',
-        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        color: 'white',
+        toolTipContent:"<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>", 
         dataPoints: tags4
       },
 
        {        
-        type: "bubble",
+        type: "scatter",
         fillOpacity: .1,
-        color: 'blue',
-        toolTipContent: "<span style='\"'color: {'light blue'};'\"'><strong>{label}</strong></span><br/> ", 
+        color: 'white',
+        toolTipContent: "<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>", 
         dataPoints: tags5
       }
 

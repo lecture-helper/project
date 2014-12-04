@@ -247,14 +247,14 @@ def timeline(username, class_name1, question_date1):
 	else: 
 		exist_questions1 = "No Questions Were Asked"
 	
-	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=row[3]*3, z=5) for row in cur_yellow.fetchall()]
+	questions_yellow = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=2+row[3]*3 +random.uniform(0,3), z=5) for row in cur_yellow.fetchall()]
 	#questions_yellow = [dict(x=2, y=1, z=30, label=row[0] for row in cur_yellow.fetchall()]
 
 	#questions_orange = [dict(x=1, y=2, z=30, label=row[0] for row in cur_orange.fetchall()]
-	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=row[3]*3, z=5) for row in cur_orange.fetchall()]
+	questions_orange = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=2+row[3]*3 +random.uniform(0,3), z=5) for row in cur_orange.fetchall()]
 
 	#questions_red = [dict(x=0, y=3, z=30, label=row[0] for row in cur_red.fetchall()]
-	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=row[3]*3, z=5) for row in cur_red.fetchall()]
+	questions_red = [dict(label=str(row[0]),x=parse_time(row[1], row[2])-min_time+ random.uniform(0,1), y=2+row[3]*3 +random.uniform(0,3), z=5) for row in cur_red.fetchall()]
 	
 	#tags = [dict(tag=str(row[0]),time=parse_time(row[1], row[2])-min_time, y=row[3]+15, z=40) for row in cur_tags.fetchall()]
 	max_time1 = 75
@@ -299,16 +299,21 @@ def timeline(username, class_name1, question_date1):
 	l45 = remove_dups(tag_dict[45.0])
 	l60 = remove_dups(tag_dict[60.0])
 	l75 = remove_dups(tag_dict[75.0])
-	tags1 = [dict(label=str(each), x=15.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l15]
-	tags2 = [dict(label=str(each), x=30.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l30]
-	tags3 = [dict(label=str(each), x=45.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l45]
-	tags4 = [dict(label=str(each), x=60.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l60]
-	tags5 = [dict(label=str(each), x=75.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4), z=((tag_freq_dict[each]*3.5)+3)) for each in l75]
+	tags1 = [dict(indexLabel = most_common(tag_dict[15.0]), label=str(l15).replace("[","").replace("]", "").replace("u'", "").replace("'", ""), x=15.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4),indexLabelFontSize=((tag_freq_dict.get(most_common(tag_dict[15.0]), 0)*7.5)+15))]
+	tags2 = [dict(indexLabel = most_common(tag_dict[30.0]), label=str(l15).replace("[","").replace("]", "").replace("u'", "").replace("'", ""), x=30.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4),indexLabelFontSize=((tag_freq_dict.get(most_common(tag_dict[30.0]), 0)*7.5)+15))]
+	tags3 = [dict(indexLabel = most_common(tag_dict[45.0]), label=str(l15).replace("[","").replace("]", "").replace("u'", "").replace("'", ""), x=45.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4),indexLabelFontSize=((tag_freq_dict.get(most_common(tag_dict[45.0]), 0)*7.5)+15))]
+	tags4 = [dict(indexLabel = most_common(tag_dict[60.0]), label=str(l15).replace("[","").replace("]", "").replace("u'", "").replace("'", ""), x=60.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4),indexLabelFontSize=((tag_freq_dict.get(most_common(tag_dict[60.0]), 0)*7.5)+15))]
+	tags5 = [dict(indexLabel = most_common(tag_dict[75.0]), label=str(l15).replace("[","").replace("]", "").replace("u'", "").replace("'", ""), x=75.0 + random.uniform(-3,3), y=28 + random.uniform(-4, 4),indexLabelFontSize=((tag_freq_dict.get(most_common(tag_dict[75.0]), 0)*7.5)+15))]
 
 
 	prof_username = username
 
 	return render_template('timeline.html',tags1 = tags1, tags2=tags2, tags3 = tags3, tags4 = tags4, tags5=tags5, max_time = max_time1, questions_y=questions_yellow, questions_o = questions_orange, questions_r = questions_red, class_name=class_name1, prof_username = prof_username, date = question_date1, exist_questions = exist_questions1)
+def most_common(lst):
+	if len(lst) == 0: 
+		return " "
+	print max(set(lst), key=lst.count)
+	return max(set(lst), key=lst.count)
 
 def remove_dups(l):
 	set_list = set(l)
