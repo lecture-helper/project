@@ -18,20 +18,19 @@
     var tags4 = {{tags4|tojson}}
     var tags5 = {{tags5|tojson}}
   
-    var chart = new CanvasJS.Chart("chartContainer",
+    var chart = new CanvasJS.Chart("chartContainer1",
     {
       zoomEnabled: true,
       title:{
-        text: "Lecture Timeline for the "+ class_name + " (" + date + ")"
       },
       axisX: {
         title:"",
         valueFormatString: "#.#",
-        maximum: 100,
+        maximum: 75,
         minimum: -3,
         gridThickness: 2,
         labelFontColor: 'transparent',
-	tickThickness: 1,
+  tickThickness: 1,
         gridColor: "transparent",
         tickColor: "transparent",
         lineThickness: 1
@@ -40,12 +39,13 @@
         title: "",              
         gridThickness: 2,
         labelFontColor: 'transparent',
-	tickThickness: 1,
+  tickThickness: 1,
         gridColor: "transparent",
         tickColor: "transparent",
         lineThickness: 0,
         valueFormatString:"#",
-        maximum: 50,
+        maximum: 10,
+        minimum: -5,
         interval: 1
         
       },
@@ -74,7 +74,51 @@
       toolTipContent: "<span style='\"'color: {'black'};'\"'><strong>{label}</strong></span>",
       dataPoints: questions_yellow
 
-    },
+    }
+       
+
+      ]
+    });
+
+
+    var chart2 = new CanvasJS.Chart("chartContainer2",
+    {
+      zoomEnabled: true,
+      title:{
+        text: "Lecture Timeline for the "+ class_name + " (" + date + ")"
+      },
+       toolTip:{
+   enabled: false,
+ },
+      axisX: {
+        title:"",
+        valueFormatString: "#.#",
+        maximum: 75,
+        minimum: -3,
+        gridThickness: 2,
+        labelFontColor: 'transparent',
+  tickThickness: 0,
+        gridColor: "transparent",
+        tickColor: "transparent",
+        lineThickness: 0
+      },
+      axisY:{
+        title: "",              
+        gridThickness: 2,
+        labelFontColor: 'transparent',
+  tickThickness: 1,
+        gridColor: "transparent",
+        tickColor: "transparent",
+        lineThickness: 0,
+        valueFormatString:"#",
+        maximum: 100,
+        minimum: -5,
+        interval: 1
+        
+      },
+
+      data: [
+     
        {        
         type: "scatter",
         fillOpacity: .1,
@@ -116,14 +160,16 @@
 
       ]
     });
-
-chart.render();
-}
+    chart2.render();
+    chart.render();
+   
+  }
 </script>
 <script type="text/javascript" src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
 </head>
 <body>
-  <div id="chartContainer" style="height: 300px; width: 100%;">
+  <div id="chartContainer2" style="height: 260px; width: 100%;"></div>
+  <div id="chartContainer1" style="height: 130px; width: 100%;"> 
   </div>
 </body>
 
