@@ -304,38 +304,38 @@ def timeline(username, class_name1, question_date1):
 	count = 1
 	for each in l15: 
 		l15_dict[each] = count
-		count+=10
+		count+=13
 	l30_dict = {}
 	count = 1
 	for each in l30: 
 		l30_dict[each] = count
-		count+=10 
+		count+=13 
 	l45_dict = {}
 	count = 1
 	for each in l45: 
 		l45_dict[each] = count
-		count+=10
+		count+=13
 	l60_dict = {}
 	count = 1
 	for each in l60: 
 		l60_dict[each] = count 
-		count+=10
+		count+=13
 
 	l75_dict = {}
 	count = 1
 	for each in l75: 
 		l75_dict[each] = count
-		count+=10
+		count+=13
 
 
 
 
 
-	tags1 = [dict(indexLabel=str(each), x=15.0 + random.uniform(-3,3), y= l15_dict[each], indexLabelFontSize=((tag_freq_dict[each]*7.5)+3)) for each in l15]
-	tags2 = [dict(indexLabel=str(each), x=30.0 + random.uniform(-3,3), y=l30_dict[each], indexLabelFontSize=((tag_freq_dict[each]*7.5)+3)) for each in l30]
-	tags3 = [dict(indexLabel=str(each), x=45.0 + random.uniform(-3,3), y=l45_dict[each], indexLabelFontSize=((tag_freq_dict[each]*7.5)+3)) for each in l45]
-	tags4 = [dict(indexLabel=str(each), x=60.0 + random.uniform(-3,3), y=l60_dict[each], indexLabelFontSize=((tag_freq_dict[each]*7.5)+3)) for each in l60]
-	tags5 = [dict(indexLabel=str(each), x=75.0 + random.uniform(-3,3), y=l75_dict[each], indexLabelFontSize=((tag_freq_dict[each]*7.5)+3)) for each in l75]
+	tags1 = [dict(indexLabel=str(each), x=15.0 + random.uniform(-3,3), y= l15_dict[each], indexLabelFontSize=((tag_freq_dict[each]*5.5)+3)) for each in l15]
+	tags2 = [dict(indexLabel=str(each), x=30.0 + random.uniform(-3,3), y=l30_dict[each], indexLabelFontSize=((tag_freq_dict[each]*5.5)+3)) for each in l30]
+	tags3 = [dict(indexLabel=str(each), x=45.0 + random.uniform(-3,3), y=l45_dict[each], indexLabelFontSize=((tag_freq_dict[each]*5.5)+3)) for each in l45]
+	tags4 = [dict(indexLabel=str(each), x=60.0 + random.uniform(-3,3), y=l60_dict[each], indexLabelFontSize=((tag_freq_dict[each]*5.5)+3)) for each in l60]
+	tags5 = [dict(indexLabel=str(each), x=75.0 + random.uniform(-3,3), y=l75_dict[each], indexLabelFontSize=((tag_freq_dict[each]*5.5)+3)) for each in l75]
 
 
 	prof_username = username
