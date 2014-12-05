@@ -22,7 +22,7 @@ import re
 # configuration
 #DATABASE = os.path.join(app.root_path, 'flaskr.db')
 DATABASE = '/tmp/flaskr.db'
-DEBUG = True # leave disabled in production code
+DEBUG = False # leave disabled in production code
 SECRET_KEY = 'development key'
 USERNAME = 'admin'
 PASSWORD = 'default'
@@ -304,22 +304,22 @@ def timeline(username, class_name1, question_date1):
 	count = 1
 	for each in l15: 
 		l15_dict[each] = count
-		count+=13
+		count+=16
 	l30_dict = {}
 	count = 1
 	for each in l30: 
 		l30_dict[each] = count
-		count+=13 
+		count+=16 
 	l45_dict = {}
 	count = 1
 	for each in l45: 
 		l45_dict[each] = count
-		count+=13
+		count+=16
 	l60_dict = {}
 	count = 1
 	for each in l60: 
 		l60_dict[each] = count 
-		count+=13
+		count+=16
 
 	l75_dict = {}
 	count = 1
@@ -588,4 +588,4 @@ def add_question():
 
 
 if __name__ == '__main__':
-	app.run()
+	app.run(host='0.0.0.0',port=80,debug=False)
