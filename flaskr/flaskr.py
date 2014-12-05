@@ -22,7 +22,7 @@ import re
 # configuration
 #DATABASE = os.path.join(app.root_path, 'flaskr.db')
 DATABASE = '/tmp/flaskr.db'
-DEBUG = False # leave disabled in production code
+DEBUG = True # leave disabled in production code
 SECRET_KEY = 'development key'
 USERNAME = 'admin'
 PASSWORD = 'default'
@@ -588,4 +588,4 @@ def add_question():
 
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0',port=80,debug=False)
+	app.run()

@@ -6,6 +6,6 @@ Make sure to do the following:
 
 3) Install and download nltk. Follow the instructions here: http://www.nltk.org/install.html as well as here: http://www.nltk.org/data.html
 
-4) To run locally, run the following command from the flaskr folder before running the server: sqlite3 /tmp/flaskr.db < schema.sql
+4) To run locally, run the following command from the flaskr folder before running the server: ./db_setup.sh
 
 5) To run the server, run the command from the flaskr folder before running the server: python flaskr.py
