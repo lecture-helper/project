@@ -251,10 +251,11 @@
             var jobject = JSON.parse(data2);
             var newadmins = jobject.admin;
             var flash = jobject.flash;
-            $(this).prevAll("span#class_admin:first").html(newadmins);
             $(this).hide();
             $("div#flash").html(flash);
             $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "OK")
+              $(this).prevAll("span#class_admin:first").html(newadmins);
           },
           error: function(err){
             console.log("An error occured");

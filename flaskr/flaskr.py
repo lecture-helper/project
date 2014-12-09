@@ -398,14 +398,17 @@ def add_class():
 	print class_key
 	class_admins = request.form['class_admins'].strip()
 	if len(class_name) == 0:
-		flash('No class name received. Class not added')
-		return redirect(url_for('professor'))
+		#flash('No class name received. Class not added')
+		#return redirect(url_for('professor'))
+		return json.dumps({'status':'no_class', 'flash':'No class name received. Class not added.'})
 	if len(class_key) == 0:
-		flash('No class key received. Class not added')
-		return redirect(url_for('professor'))
+		#flash('No class key received. Class not added')
+		#return redirect(url_for('professor'))
+		return json.dumps({'status':'no_key', 'flash':'No class key received. Class not added'})
 	if len(class_admins) == 0:
-		flash('No admins received. Class not added')
-		return redirect(url_for('professor'))
+		#flash('No admins received. Class not added')
+		#return redirect(url_for('professor'))
+		return json.dumps({'status':'no_admin', 'flash':'No admins received. Class not added.'})
 	for admin in class_admins.split(','):
 		person = g.db.execute('select username from Person where username="' + admin.strip() + '"').fetchall()
 		if len(person) == 0:
@@ -522,14 +525,14 @@ def update_admin():
 	class_name = request.form['class_name'].strip()
 	oldadmins = request.form['oldadmin'].strip()
 	if len(newadmins) == 0:
-		return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'No admins received'})
+		return json.dumps({'status':'no_admin', 'admin':oldadmins, 'flash':'No admins received'})
 	old_admins = [admin.strip() for admin in oldadmins.split(',')]
 	if current_user.username not in old_admins:
-		return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'You must be an admin to change the admins'})
+		return json.dumps({'status':'not_authorized', 'admin':oldadmins, 'flash':'You must be an admin to change the admins'})
 	for admin in newadmins.split(','):
 		person = g.db.execute('select username from Person where username="' + admin.strip() + '"').fetchall()
 		if len(person) == 0:
-			return json.dumps({'status':'OK', 'admin':oldadmins, 'flash':'One of the admins does not exist'})
+			return json.dumps({'status':'not_exist', 'admin':oldadmins, 'flash':'One of the admins does not exist'})
 	g.db.execute('Update Class Set class_admin="' + newadmins + '" where class_name="' + class_name + '"')	
 	g.db.commit()
 	return json.dumps({'status':'OK', 'admin':newadmins, 'flash':'Admins updated'})
@@ -555,7 +558,7 @@ def student_class(username, class_name1):
 		return redirect(url_for('login'))
 	if current_user.isProfessor: return redirect(url_for('professor'))
 	username = current_user.username
-	cur = g.db.execute('select question_text, question_date, question_time, question_confusion, question_tag from Question where Question.question_id IN (select question_id from Asked_in where Asked_in.class_name="'+ class_name1 +'") order by question_date desc, question_time desc')
+	cur = g.db.execute('select question_text, question_date, question_time, question_confusion, question_tag from Question, Asks where Question.question_id IN (select question_id from Asked_in where Asked_in.class_name="'+ class_name1 +'") AND Question.question_id=Asks.question_id AND Asks.username="'+username+'" order by question_date desc, question_time desc')
 	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 	return render_template('questions.html', questions=questions, class_name = class_name1)
 
