@@ -4,16 +4,14 @@
   <div id="classes" class=entries>
   {% for class in classes %}
     <dl id="registered-class">
-      <dt><a class=classname id="classname" href="{{url_for('student_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> <button id="unsubscribe">Unsubscribe</button> </dt>
+      <dt><a class=classname id="classname" href="{{url_for('student_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> <button class="btn btn-danger" id="unsubscribe" style="padding-bottom:3px;padding-top:3px;">Unsubscribe</button> </dt>
     </dl>
   {% else %}
-    <!--<em>No classes</em>-->
+    <em>No classes</em>
   {% endfor %}
   </div>
-  <br>
   <hr>
-  <br>
-  <h2>Subscribe to an Existing Class</h2>
+<!--   <h2>Subscribe to an Existing Class</h2>
   <form action="{{ url_for('subscribe') }}" id="subscribe-class" method=post class=subscribe-class>
     <dl>
       <dt>Class Name:
@@ -22,7 +20,25 @@
       <dd><textarea name="class_key" rows=1 cols=40></textarea>
       <dd><input type=submit value="Subscribe">
     </dl>
-  </form> 
+  </form>  -->
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Subscribe to an Existing Class</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('subscribe') }}" id="subscribe-class" method=post>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Name:</h5>
+            <input type="text" class="form-control" name="class_name" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Key:</h5>
+            <input type="text" class="form-control" name="class_key" size = "60%">
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-default">Subscribe</button>
+        </form>
+    </div>
+  </nav>
 
   <script>
     /*AJAX for subscribing to a class*/
@@ -40,7 +56,7 @@
             $("div#flash").show().delay(5000).fadeOut();
             if(blah.status == "OK"){
               var url = "/student_class/"+ blah.username + "/" + blah.class_name;
-              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <button id='unsubscribe'>Unsubscribe</button></dt></dl>");
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <button class='btn btn-danger' id='unsubscribe' style='padding-bottom:3px;padding-top:3px;'>Unsubscribe</button></dt></dl>");
             }
           },
           error: function(err){

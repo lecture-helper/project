@@ -1,40 +1,43 @@
 {% extends "user.html" %}
 {% block body %}
-	<br>
-	<br>
 	<a href="{{url_for('timeline_main_page', username1 = current_user.username, class_name1 = class_name)}}">Timelines</a>
 	<br>
 	<br>
 	<a href="{{url_for('professor')}}">Go Back</a>
-	<br>
-	<br>
-	<br>
-	<h2>Best Questions to Address At the Moment: </h2>
-	<br>
-	<div class = entries>
-	{% for question in nlp_result %}
-		<h3>{{ question }}</h3>
-	{% else %}
-		<!--<em>No questions have been asked</em>-->
-	{% endfor %}
-	</div>
+	<br><br>
+	<nav class="navbar navbar-default" role="navigation">
+	    <div class="container-fluid">
+			<h3>Best Questions to Address At the Moment: </h3>
+			<br>
+			<div class = entries>
+			{% for question in nlp_result %}
+				<h4>{{ question }}</h4><br>
+			{% else %}
+				<em>No questions have been asked</em>
+			{% endfor %}
+			</div>
+		</div>
+	</nav>
 
 	<br>
-	<h2>All Questions: </h2>
-	<br>
-	<div class=entries>
-	{% for question in questions %}
-		<h3>{{ question.text }}</h3>{{ question.date }}, {{ question.time }}<br>
-    	Confusion: {{question.confusion}} | Tags: 
-	    {% for tag in question.tags %}
-	    {{tag}}
-	    {% endfor %}
-	    <br>
-	{% else %}
-		<!--<em>No questions have been asked</em>-->
-	{% endfor %}
-	</div>
-
+	<nav class="navbar navbar-default" role="navigation">
+	    <div class="container-fluid">
+			<h3>All Questions: </h3>
+			<br>
+			<div class=entries>
+			{% for question in questions %}
+				<h4>{{ question.text }}</h4>{{ question.date }}, {{ question.time }}<br>
+		    	Confusion: {{question.confusion}} | Tags: 
+			    {% for tag in question.tags %}
+			    {{tag}}
+			    {% endfor %}
+			    <br>
+			{% else %}
+				<em>No questions have been asked</em>
+			{% endfor %}
+			</div>
+		</div>
+	</nav>
 
 	<script>
 	setTimeout(function(){

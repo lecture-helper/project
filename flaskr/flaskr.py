@@ -22,7 +22,7 @@ import re
 # configuration
 #DATABASE = os.path.join(app.root_path, 'flaskr.db')
 DATABASE = '/tmp/flaskr.db'
-DEBUG = False # leave disabled in production code
+DEBUG = True # leave disabled in production code
 SECRET_KEY = 'development key'
 USERNAME = 'admin'
 PASSWORD = 'default'
@@ -395,6 +395,7 @@ def add_class():
 	username = current_user.username
 	class_name = request.form['class_name'].strip()
 	class_key = request.form['class_key'].strip()
+	print class_key
 	class_admins = request.form['class_admins'].strip()
 	if len(class_name) == 0:
 		flash('No class name received. Class not added')
@@ -455,6 +456,8 @@ def subscribe():
 	classes = cur.fetchall()
 	if len(classes) == 0:
 		return json.dumps({'status':'not_exist', 'flash':'This class does not exist'})
+	print classes
+	print class_key
 	if class_key != classes[0][1]:
 		return json.dumps({'status':'wrong_key', 'flash':'The key entered is not correct'})
 	try:
@@ -588,4 +591,4 @@ def add_question():
 
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0',port=80,debug=False)
+	app.run()

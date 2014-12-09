@@ -8,9 +8,9 @@
 <body>
 <div class=page>
   <h1>Lecture Helper</h1>
-
   {% for message in get_flashed_messages() %}
-    <div class=flash>{{ message }}</div>
+    <div id="flash" class="alert alert-danger" role="alert">{{ message }}</div>
+   <!--  <div class=flash>{{ message }}</div> -->
   {% endfor %}
   {% block body %}{% endblock %}
 </div>

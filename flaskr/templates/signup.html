@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
-  <h2>Sign Up</h2>
+<!--   <h2>Sign Up</h2>
   <form action="{{ url_for('add_user') }}" method=post class=add-person>
     <dl>
       <dt>Email:
@@ -15,6 +15,34 @@
       <dd><input type=submit value="Sign Up">
     </dl>
   </form>
-  <br>
+  <br> -->
+
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <h3>Sign Up</h3>
+      <form class="navbar-form navbar-left" action="{{ url_for('add_user') }}" id="add-user" method=post >
+        <div class="form-group">
+          <h5 style="font-weight: bold;">Email:</h5>
+          <input type="text" class="form-control" name="email" size = "60%">
+        </div>
+        <div class="form-group">
+          <h5 style="font-weight: bold;">Username:</h5>
+          <input type="text" class="form-control" name="username" size = "60%">
+        </div>
+        <br>
+        <div class="form-group">
+          <h5 style="font-weight: bold;">Password:</h5>
+          <input type="password" class="form-control" name="password" size = "60%">
+        </div>
+        <div class="form-group">
+          <h5 style="font-weight: bold;">Professor or Student?</h5>
+          <input type="radio" name="type" value="Student" checked>Student
+          <input type="radio" name="type" value="Professor">Professor<br>
+        </div>
+        <br><br>
+        <button type="submit" class="btn btn-default">Sign Up</button>
+      </form>
+  </div>
+</nav>
 {% endblock %}
 

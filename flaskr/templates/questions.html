@@ -1,10 +1,8 @@
 {% extends "user.html" %}
 {% block body %}
-  <br>
   <a href="{{url_for('student')}}">Go Back</a>
-  <br>
-  <br>
-  <h2>{{class_name}}</h2>
+
+  <!-- <h2>{{class_name}}</h2>
   <form action="{{ url_for('add_question') }}" id="add-question" method=post class=add-question>
     <dl>
       <dt>Question:</dt>
@@ -21,7 +19,40 @@
       <dt><input type=submit value=Ask></dt>
     </dl>
   </form>
-  <br>
+  <br> -->
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>{{class_name}}</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('add_question') }}" id="add-question" method=post>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Question:</h5>
+            <input type="text" class="form-control" name="question" size = "60%">
+            <input type=hidden name="class_name" value="{{class_name}}">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Tags:</h5>
+            <input type="text" class="form-control" name="tag" size = "60%">
+            <br>(add a "#" before each tag)
+          </div>
+          <br>
+          <div class="form-group">
+             <h5 style="font-weight: bold;">Confusion:</h5>
+             <!-- <div class="slider slider-horizontal" id="sl1" name="sl1" style="width: 140px;">
+              <div class="slider-track">
+                <div class="slider-selection" style="left: 0%; width: 0%;"></div>
+                <div class="slider-handle round" style="left: 0%;"></div>
+                <div class="slider-handle round hide" style="left: 0%;"></div>
+              </div>
+            </div> -->
+    
+            <div style="float:left; padding-right:15px;">Low</div><input type="range" class="slider slider-horizontal" name="confusion" id="confusion" value="1" min="1" max="3" step="1" data-show-value="true" style="float:left;"> <div style="float:left; padding-left:15px;">  High</div>
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-primary">Ask</button>
+        </form>
+    </div>
+  </nav>
   <hr>
   <br>
   <h2>Questions</h2>

@@ -1,39 +1,41 @@
 {% extends "user.html" %}
 {% block body %}
-  <br>
-  <h2>Classes</h2>
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid" >
+  <h3>Classes</h3>
   <div id="classes" class=entries>
   {% for class in classes %}
     <dl id="registered-class">
       <dt><a class=classname id="classname" href="{{url_for('professor_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> 
-      <br><button id="unsubscribe">Unsubscribe</button> <button id="delete">Delete</button></dt>
+      <br><button class="btn btn-primary" id="unsubscribe" style="padding-bottom:3px;padding-top:3px;">Unsubscribe</button> <button class="btn btn-danger" id="delete" style="padding-bottom:3px;padding-top:3px;">Delete</button></dt>
       <br>
-      <dd><strong>Key:</strong> <span id="class_key">{{class.class_key}}</span> <button id="change-key">Change Key</button>
+      <dd><strong>Key:</strong> <span id="class_key">{{class.class_key}}</span> <button class="btn btn-primary" id="change-key" style="padding-bottom:3px;padding-top:3px;">Change Key</button>
       <form id="key-form" class="key-form" style="display:none">
-        <textarea name="newkey" id="newkey" rows=1 cols=40></textarea>
+        <input type="text" name="newkey" id="newkey" size=40px>
         <input type=hidden name="class_name" value="{{class.class_name}}">
         <input type=hidden name="oldkey" value="{{class.class_key}}">
-        <input type=submit value="Submit">
+        <input type=submit class="btn btn-default" value="Submit">
       </form>
       </dd>
-      <dd><strong>Admins:</strong> <span id="class_admin">{{class.class_admin}}</span> <button id="change-admin">Change Admins</button>
+      <br>
+      <dd><strong>Admins:</strong> <span id="class_admin">{{class.class_admin}}</span> <button class="btn btn-primary" id="change-admin" style="padding-bottom:3px;padding-top:3px;">Change Admins</button>
       <form id="admin-form" class="admin-form" style="display:none">
-        <textarea name="newadmins" id="newadmins" rows=3 cols=40></textarea>
+        <input type="text" name="newadmins" id="newadmins" size=60px;>
         <input type=hidden name="class_name" value="{{class.class_name}}">
         <input type=hidden name="oldadmin" value="{{class.class_admin}}">
-        <input type=submit value="Submit">
+        <input type=submit class="btn btn-default" value="Submit">
       </form>
       </dd>
     </dl>
   {% else %}
-    <!--<em>No classes</em>-->
+    <em>No classes</em>
   {% endfor %}
   </div>
-  <br>
+  
+</div>
+</nav>
   <hr>
-  <br>
-  <h2>Add a New Class</h2>
-  <form action="{{ url_for('add_class') }}" id="add-class" method=post class=add-class>
+  <!-- <form action="{{ url_for('add_class') }}" id="add-class" method=post class=add-class>
     <dl>
       <dt>Class Name:
       <dd><textarea name="class_name" rows=1 cols=40></textarea>
@@ -44,9 +46,34 @@
       <dd>(Add usernames of admins separated by commas)
       <dd><input type=submit value="Add">
     </dl>
-  </form>
-  <br>
-  <h2>Subscribe to an Existing Class</h2>
+  </form> -->
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Add a New Class</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('add_class') }}" id="add-class" method=post>
+          
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Name:</h5>
+            <input type="text" class="form-control" name="class_name" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Key:</h5>
+            <input type="text" class="form-control" name="class_key" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Admin(s):</h5>
+            <input type="text" class="form-control" name="class_admins" size = "60%">
+            <br>(Add usernames of admins separated by commas)
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-default">Submit</button>
+        </form>
+    </div>
+  </nav>
+
+<!--   <h2>Subscribe to an Existing Class</h2>
   <form action="{{ url_for('subscribe') }}" id="subscribe-class" method=post class=subscribe-class>
     <dl>
       <dt>Class Name:
@@ -56,7 +83,26 @@
       <dd><input type=submit value="Subscribe">
     </dl>
   </form>  
-  <br>
+  <br> -->
+<hr>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Subscribe to an Existing Class</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('subscribe') }}" id="subscribe-class" method=post>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Name:</h5>
+            <input type="text" class="form-control" name="class_name" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Key:</h5>
+            <input type="text" class="form-control" name="class_key" size = "60%">
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-default">Subscribe</button>
+        </form>
+    </div>
+  </nav>
  
   <script>
     /*AJAX for adding a class*/
@@ -75,7 +121,7 @@
             if(blah.status == "OK"){
               var url = "/professor_class/" + blah.username + "/" + blah.class_name;
               console.log(typeof url);
-              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <br><button id='unsubscribe'>Unsubscribe</button> <button id='delete'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + blah.class_key + "</span> <button id='change-key'>Change Key</button><form id='key-form' class='key-form' style='display:none'><textarea name='newkey' id='newkey' rows=1 cols=40></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldkey' value='" + blah.class_key + "'><input type=submit value='Submit'></form></dd><dd><strong>Admins:</strong> <span id='class_admin'>" + blah.class_admin + "</span> <button id='change-admin'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><textarea name='newadmins' id='newadmins' rows=3 cols=40></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldadmin' value='" + blah.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <br><button class='btn btn-primary' id='unsubscribe' style='padding-bottom:3px;padding-top:3px;'>Unsubscribe</button> <button class='btn btn-danger' id='delete' style='padding-bottom:3px;padding-top:3px;'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + blah.class_key + "</span> <button class='btn btn-primary' id='change-key' style='padding-bottom:3px;padding-top:3px;'>Change Key</button><form id='key-form' class='key-form' style='display:none'><input type='text' name='newkey' id='newkey' size=40px;></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldkey' value='" + blah.class_key + "'><input type=submit value='Submit' class='btn btn-default'></form></dd><br><dd><strong>Admins:</strong> <span id='class_admin'>" + blah.class_admin + "</span> <button class='btn btn-primary' id='change-admin' style='padding-bottom:3px;padding-top:3px;'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><input type='text' name='newadmins' id='newadmins' size=60px;></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldadmin' value='" + blah.class_admin + "'><input type=submit value='Submit' class='btn btn-default'></form></dd></dl>");
             }
           },
           error: function(err){
@@ -100,7 +146,7 @@
             $("div#flash").show().delay(5000).fadeOut();
             if(jobject.status == "OK"){
               var url = "/professor_class/" + jobject.username + "/" + jobject.class_name;
-              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <br><button id='unsubscribe'>Unsubscribe</button> <button id='delete'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + jobject.class_key + "</span> <button id='change-key'>Change Key</button><form id='key-form' class='key-form' style='display:none'><textarea name='newkey' id='newkey' rows=1 cols=40></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldkey' value='" + jobject.class_key + "'><input type=submit value='Submit'></form></dd><dd><strong>Admins:</strong> <span id='class_admin'>" + jobject.class_admin + "</span> <button id='change-admin'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><textarea name='newadmins' id='newadmins' rows=3 cols=40></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldadmin' value='" + jobject.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <br><button id='unsubscribe' class='btn btn-primary' style='padding-bottom:3px;padding-top:3px;'>Unsubscribe</button> <button class='btn btn-danger' id='delete' style='padding-bottom:3px;padding-top:3px;'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + jobject.class_key + "</span> <button id='change-key' class='btn btn-primary' style='padding-bottom:3px;padding-top:3px;'>Change Key</button><form id='key-form' class='key-form' style='display:none'><input type='text' name='newkey' id='newkey' size=40px;></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldkey' value='" + jobject.class_key + "'><input type=submit value='Submit'></form></dd><br><dd><strong>Admins:</strong> <span id='class_admin'>" + jobject.class_admin + "</span> <button id='change-admin' class='btn btn-primary' style='padding-bottom:3px;padding-top:3px;'>Change Admins</button ><form id='admin-form' class='admin-form' style='display:none'><input text='text' name='newadmins' id='newadmins' size=60px;></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldadmin' value='" + jobject.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
             }
           },
           error: function(err){

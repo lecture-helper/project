@@ -6,20 +6,26 @@
 <title>Lecture Helper</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
-  <ul>
-    <li>{{current_user.username}}</li>
-    <li><a href="/logout">Log Out</a></li>
-  </ul>
+
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container" style="text-align: right;">
+      <li role="presentation" style="padding: 10px; display: inline-block; font-weight: bold;">{{current_user.username}}</li>
+      <li role="presentation" style="padding: 10px; font-weight: bold;"><a href="/logout">Log Out</a></li>
+    </div>
+  </nav>
+
 <div class=page>
   <h1>Lecture Helper</h1>
-
-  <!--{% for message in get_flashed_messages() %}
-    <div class=flash>{{ message }}</div>
-  {% endfor %}-->
-  <div style="height: 40px">
-  <div id="flash" class=flash style=display:none></div>
-  </div>
+  <!-- <div style="height: 40px">
+    <div id="flash" class=flash style=display:none></div>
+  </div> -->
+  <nav class="navbar navbar-default" role="navigation" style="background-color: #ffffff; border-color: #ffffff; padding:0px;">
+      <div style="height: 40px">
+        <div id="flash" class="alert alert-danger" role="alert" style="display:none"></div>
+      </div>
+  </nav>
   {% block body %}{% endblock %}
 </div>
 </body>
