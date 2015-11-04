@@ -1,0 +1,249 @@
+{% extends "layout.html" %}
+{% block body %}
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid" >
+  <h3>Classes</h3>
+  {% for class in classes %}
+    <dl id="registered-class">
+      <dt><a class=classname id="classname" href="{{url_for('professor_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> 
+      <br><button class="btn btn-primary" id="unsubscribe" style="padding-bottom:3px;padding-top:3px;">Unsubscribe</button> <button class="btn btn-danger" id="delete" style="padding-bottom:3px;padding-top:3px;">Delete</button></dt>
+      <br>
+      <dd><strong>Key:</strong> <span id="class_key">{{class.class_key}}</span> <button class="btn btn-primary" id="change-key" style="padding-bottom:3px;padding-top:3px;">Change Key</button>
+      <form id="key-form" class="key-form" style="display:none">
+        <input type="text" name="newkey" id="newkey" size=40px>
+        <input type=hidden name="class_name" value="{{class.class_name}}">
+        <input type=hidden name="oldkey" value="{{class.class_key}}">
+        <input type=submit class="btn btn-default" value="Submit">
+      </form>
+      </dd>
+      <br>
+      <dd><strong>Admins:</strong> <span id="class_admin">{{class.class_admin}}</span> <button class="btn btn-primary" id="change-admin" style="padding-bottom:3px;padding-top:3px;">Change Admins</button>
+      <form id="admin-form" class="admin-form" style="display:none">
+        <input type="text" name="newadmins" id="newadmins" size=60px;>
+        <input type=hidden name="class_name" value="{{class.class_name}}">
+        <input type=hidden name="oldadmin" value="{{class.class_admin}}">
+        <input type=submit class="btn btn-default" value="Submit">
+      </form>
+      </dd>
+    </dl>
+  {% else %}
+    <em>No classes</em>
+  {% endfor %}
+  
+</div>
+</nav>
+  <hr>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Add a New Class</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('add_class') }}" id="add-class" method=post>
+          
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Name:</h5>
+            <input type="text" class="form-control" name="class_name" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Key:</h5>
+            <input type="text" class="form-control" name="class_key" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Admin(s):</h5>
+            <input type="text" class="form-control" name="class_admins" size = "60%">
+            <br>(Add usernames of admins separated by commas)
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+  </nav>
+<hr>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Subscribe to an Existing Class</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('subscribe') }}" id="subscribe-class" method=post>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Name:</h5>
+            <input type="text" class="form-control" name="class_name" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Class Key:</h5>
+            <input type="text" class="form-control" name="class_key" size = "60%">
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-primary">Subscribe</button>
+        </form>
+    </div>
+  </nav>
+ 
+  <script>
+    /*AJAX for adding a class*/
+    $(document).on('submit', "form#add-class", function(){
+      var datastring = $(this).serialize();
+      $.ajax({ 
+          url: "{{ url_for('add_class') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var blah = JSON.parse(data2);
+            var flash = blah.flash;
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(blah.status == "OK"){
+              var url = "/professor_class/" + blah.username + "/" + blah.class_name;
+              console.log(typeof url);
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + blah.class_name + "</a> <br><button class='btn btn-primary' id='unsubscribe' style='padding-bottom:3px;padding-top:3px;'>Unsubscribe</button> <button class='btn btn-danger' id='delete' style='padding-bottom:3px;padding-top:3px;'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + blah.class_key + "</span> <button class='btn btn-primary' id='change-key' style='padding-bottom:3px;padding-top:3px;'>Change Key</button><form id='key-form' class='key-form' style='display:none'><input type='text' name='newkey' id='newkey' size=40px;></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldkey' value='" + blah.class_key + "'><input type=submit value='Submit' class='btn btn-default'></form></dd><br><dd><strong>Admins:</strong> <span id='class_admin'>" + blah.class_admin + "</span> <button class='btn btn-primary' id='change-admin' style='padding-bottom:3px;padding-top:3px;'>Change Admins</button><form id='admin-form' class='admin-form' style='display:none'><input type='text' name='newadmins' id='newadmins' size=60px;></textarea><input type=hidden name='class_name' value='" + blah.class_name + "'><input type=hidden name='oldadmin' value='" + blah.class_admin + "'><input type=submit value='Submit' class='btn btn-default'></form></dd></dl>");
+            }
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+    /*AJAX for subscribing to a class*/
+    $(document).on('submit', "form#subscribe-class", function(){
+      var datastring = $(this).serialize();
+      $.ajax({ 
+          url: "{{ url_for('subscribe') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "OK"){
+              var url = "/professor_class/" + jobject.username + "/" + jobject.class_name;
+              $("div#classes").append("<dl id='registered-class'><dt><a class=classname id='classname' href='" + url + "'>" + jobject.class_name + "</a> <br><button id='unsubscribe' class='btn btn-primary' style='padding-bottom:3px;padding-top:3px;'>Unsubscribe</button> <button class='btn btn-danger' id='delete' style='padding-bottom:3px;padding-top:3px;'>Delete</button></dt><br><dd><strong>Key:</strong> <span id='class_key'>" + jobject.class_key + "</span> <button id='change-key' class='btn btn-primary' style='padding-bottom:3px;padding-top:3px;'>Change Key</button><form id='key-form' class='key-form' style='display:none'><input type='text' name='newkey' id='newkey' size=40px;></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldkey' value='" + jobject.class_key + "'><input type=submit value='Submit'></form></dd><br><dd><strong>Admins:</strong> <span id='class_admin'>" + jobject.class_admin + "</span> <button id='change-admin' class='btn btn-primary' style='padding-bottom:3px;padding-top:3px;'>Change Admins</button ><form id='admin-form' class='admin-form' style='display:none'><input text='text' name='newadmins' id='newadmins' size=60px;></textarea><input type=hidden name='class_name' value='" + jobject.class_name + "'><input type=hidden name='oldadmin' value='" + jobject.class_admin + "'><input type=submit value='Submit'></form></dd></dl>");
+            }
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+    /*AJAX for unsubscribing from a class*/
+    $(document).on('click', "#unsubscribe", function(){
+      var classname = $(this).prevAll("a#classname:first").text();
+      datastring = "class_name=" + classname;
+      $.ajax({ 
+          url: "{{ url_for('unsubscribe') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            var toRemove = $(this).parent().parent();
+            toRemove.remove();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+    /*AJAX for deleting a class*/
+    $(document).on('click', "#delete", function(){
+      var classname = $(this).prevAll("a#classname:first").text();
+      datastring = "class_name=" + classname;
+      $.ajax({ 
+          url: "{{ url_for('delete_class') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var flash = jobject.flash;
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "deleted"){
+              var toRemove = $(this).parent().parent();//$(this).prevAll("dl#registered-class:first");
+              toRemove.remove();
+            }
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+    /*For showing and hiding key form*/
+    $(document).on('click', "button#change-key", function(){
+      $(this).next("#key-form").toggle();
+    });
+    /*For showing and hiding admin form*/
+    $(document).on('click', "button#change-admin", function(){
+      $(this).next("#admin-form").toggle();
+    });
+    /*AJAX for changing a class key*/
+    $(document).on('submit', "form#key-form", function(event){
+      var datastring = $(this).serialize();
+      $.ajax({ 
+          url: "{{ url_for('update_key') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var newkey = jobject.class_key;
+            var flash = jobject.flash;
+            $(this).prevAll("span#class_key:first").html(newkey);
+            $(this).hide();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+    /*AJAX for changing class admins*/
+    $(document).on('submit', "form#admin-form", function(event){
+      var datastring = $(this).serialize();
+      var me = this;
+      $.ajax({ 
+          url: "{{ url_for('update_admin') }}",
+          type: 'POST',
+          data: datastring,
+          context: this,
+          success: function(data2){
+            var jobject = JSON.parse(data2);
+            var newadmins = jobject.admin;
+            var flash = jobject.flash;
+            $(this).hide();
+            $("div#flash").html(flash);
+            $("div#flash").show().delay(5000).fadeOut();
+            if(jobject.status == "OK")
+              $(this).prevAll("span#class_admin:first").html(newadmins);
+          },
+          error: function(err){
+            console.log("An error occured");
+          }
+      });
+      this.reset()
+      return false;
+    });
+    /*For hiding a form when user clicks outside of it*/
+    $(document.body).click(function(e){
+      if(e.target.id != "newkey" && e.target.id !="change-key")
+        $("form#key-form").hide();
+      if(e.target.id != "newadmins" && e.target.id != "change-admin")
+        $("form#admin-form").hide();
+    });
+  </script>
+{% endblock %}

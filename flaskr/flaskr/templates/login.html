@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Log In</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('submit_login') }}" id="submit-login" method=post >
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Username:</h5>
+            <input type="text" class="form-control" name="username" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Password:</h5>
+            <input type="password" class="form-control" name="password" size = "60%">
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+    </div>
+  </nav>
+{% endblock %}

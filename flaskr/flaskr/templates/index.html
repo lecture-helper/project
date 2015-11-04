@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block body %}
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Log In</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('submit_login') }}" id="submit-login" method=post >
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Username:</h5>
+            <input type="text" class="form-control" name="username" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Password:</h5>
+            <input type="password" class="form-control" name="password" size = "60%">
+          </div>
+          <br><br>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+    </div>
+  </nav>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <h3>Sign Up</h3>
+        <form class="navbar-form navbar-left" action="{{ url_for('add_user') }}" id="add-user" method=post >
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Email:</h5>
+            <input type="text" class="form-control" name="email" size = "60%">
+          </div>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Username:</h5>
+            <input type="text" class="form-control" name="username" size = "60%">
+          </div>
+          <br>
+          <div class="form-group">
+            <h5 style="font-weight: bold;">Password:</h5>
+            <input type="password" class="form-control" name="password" size = "60%">
+          </div>
+            <div><br></div>
+            <div class="btn-group" data-toggle="buttons">
+              <label class="btn btn-default active">
+                  <input type="radio" name="type" value="Student" checked="checked"/> Student
+              </label> 
+              <label class="btn btn-default">
+                  <input type="radio" name="type" value="Professor" /> Professor
+              </label> 
+            </div>
+          <br><br>
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+    </div>
+  </nav>
+  <script>
+  $(function() {
+   $("label").click(function() {
+      // remove classes from all
+      $("label").removeClass("active");
+      // add class to the one we clicked
+      $(this).addClass("active");
+   });
+});
+  </script>
+{% endblock %}

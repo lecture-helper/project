@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block body %}
+  <br>
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container-fluid" >
+      <h2>Lectures</h2>
+      {% for date in date_list %}
+      	
+          <br>
+          <a href="{{url_for('timeline', username=current_user.username, class_name1=class_name, question_date1 = date)}}">{{date}}</a>
+          <br> 
+     
+      {% else %}
+        <em>No classes</em>
+      {% endfor %}
+    </nav>
+  </br>
+
+
+{% endblock %}
