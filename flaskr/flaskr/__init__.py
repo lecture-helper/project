@@ -81,8 +81,6 @@ def load_user(userid):
 	else:
 		return User(userid, person[0]['type'])
 
-import flaskr.views.parseQuestions
-
 import flaskr.views.student_views
 import flaskr.views.professor_views
 import flaskr.views.timeline_views

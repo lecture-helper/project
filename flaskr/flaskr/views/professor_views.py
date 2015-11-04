@@ -1,4 +1,5 @@
 from flaskr import *
+import parseQuestions
 
 @app.route('/professor')
 def professor():
