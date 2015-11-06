@@ -39,8 +39,7 @@ def timeline(username, class_name1, question_date1):
 
 	# gets lists of questions per confusion - questions[0] are yellow, questions[1] are orange, questions[2] are red
 	questions = [get_questions_by_confusion(class_name1, question_date1, confusion, min_time) for confusion in range(1,4)]
-	
-	# redundant
+
 	cur_tags = g.db.execute('select question_tag, question_time from Question where question_date = (?) AND (question_id IN (select question_id from Asked_in where class_name= (?) ))', [question_date1, class_name1])
 
 	interval = int(float(MAX_TIME)/float(NUM_INTERVALS))

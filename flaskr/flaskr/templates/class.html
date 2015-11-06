@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block body %}
+	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+    <script src="/static/js/reload_questions.js"></script>
+    <div id="class_name" style="display: none;">{{class_name}}</div>
 	<a href="{{url_for('timeline_main_page', username1 = current_user.username, class_name1 = class_name)}}">Timelines</a>
 	<br>
 	<br>
@@ -9,12 +12,14 @@
 	    <div class="container-fluid">
 			<h3>Best Questions to Address At the Moment: </h3>
 			<br>
-			<div class = entries>
-			{% for question in nlp_result %}
-				<h4>{{ question }}</h4><br>
-			{% else %}
+			<div id="best" class = entries>
+			</div>
+
+			<div id="loading"> 
+				<em>Loading best questions</em>
+			</div>
+			<div id="no_best_questions" style="display: none;"> 
 				<em>No questions have been asked</em>
-			{% endfor %}
 			</div>
 		</div>
 	</nav>
@@ -24,24 +29,35 @@
 	    <div class="container-fluid">
 			<h3>All Questions: </h3>
 			<br>
-			<div class=entries>
+			<div id="all">
 			{% for question in questions %}
-				<h4>{{ question.text }}</h4>{{ question.date }}, {{ question.time }}<br>
-		    	Confusion: {{question.confusion}} | Tags: 
-			    {% for tag in question.tags %}
-			    {{tag}}
-			    {% endfor %}
-			    <br>
-			{% else %}
-				<em>No questions have been asked</em>
+					<div>
+					<h4>{{ question.text }}</h4>{{ question.date }}, {{ question.time }}<br>
+			    	Confusion: {{question.confusion}} | Tags: 
+				    {% for tag in question.tags %}
+				    {{tag}}
+				    {% endfor %}
+				    </div>
 			{% endfor %}
 			</div>
+
+			{% if questions|length == 0 %}
+			<div id="no_questions"> 
+				<em>No questions have been asked</em>
+			</div>
+			{% else %}
+			<div id="no_questions" style="display: none;"> 
+				<em>No questions have been asked</em>
+			</div>
+			{% endif %}
 		</div>
 	</nav>
 
 	<script>
-	setTimeout(function(){
-   		window.location.reload(1);
-	}, 5000);
+	setInterval(function() {
+		var class_name = $('#class_name').text();
+   		socket = io.connect('/questions');
+   		socket.emit('update', class_name);
+	}, 8000);
 	</script>
 {% endblock %}
