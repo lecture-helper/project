@@ -1,5 +1,6 @@
 from flaskr import *
 import parseQuestions
+from multiprocessing import Process, Queue
 
 @app.route('/professor')
 def professor():
@@ -22,17 +23,38 @@ def professor_class(username, class_name1):
 	
 	if current_user.isStudent: return redirect(url_for('student'))
 
-	# question_query = g.db.execute('select question_text from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
-	# # select last 10 questions
-	# question_list = [str(row[0]) for row in question_query][:10]
-	# # choose top 3 most relevant questions
-	# top_questions = parseQuestions.relevantQuestions(question_list, 3)
 	top_questions = []
 
 	cur = g.db.execute('select question_text, question_date, question_time,question_confusion, question_tag from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
 	questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
 
 	return render_template('class.html', questions=questions, class_name=class_name1, username = current_user.username, nlp_result = top_questions)
+
+@app.route('/best_questions')
+def best_questions():
+	from flask.ext.login import current_user
+	if not current_user.is_authenticated():
+		return redirect(url_for('login'))
+	
+	if current_user.isStudent: return redirect(url_for('student'))
+
+	class_name1 = request.args.get('class_name1', 0, type=str)
+
+	question_query = g.db.execute('select question_text from Question where question_id IN (select question_id from Asked_in where class_name="'+class_name1+'")  order by question_date desc, question_time desc')
+	# select last 10 questions
+	question_list = [str(row[0]) for row in question_query][:10]
+	# # choose top 3 most relevant questions
+	top_questions = parseQuestions.relevantQuestions(question_list, 3)
+	# queue = Queue()
+	# p = Process(target=parseQuestions.relevantQuestions, args=(question_list, 3))
+	# p.start()
+	# p.join() # this blocks until the process terminates
+	# result = queue.get()
+
+	return json.dumps({'status':'OK', 'flash':'New class added', 'result': top_questions})
+
+
+
 
 @app.route('/add_class', methods=['POST'])
 def add_class():

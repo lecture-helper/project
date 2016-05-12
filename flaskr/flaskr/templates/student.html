@@ -3,15 +3,18 @@
 <nav class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
   <h2>Classes</h2>
-  <!-- <div id="classes" class=entries> -->
+  <div id="classes" class=entries>
   {% for class in classes %}
     <dl id="registered-class">
-      <dt><a class=classname id="classname" href="{{url_for('student_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> <button class="btn btn-danger" id="unsubscribe" style="padding-bottom:3px;padding-top:3px;">Unsubscribe</button> </dt>
+      <dt>
+        <a class=classname id="classname" href="{{url_for('student_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}
+        </a> <button class="btn btn-danger" id="unsubscribe" style="padding-bottom:3px;padding-top:3px;">Unsubscribe</button> 
+      </dt>
     </dl>
   {% else %}
     <em>No classes</em>
   {% endfor %}
-  <!-- </div> -->
+  </div>
   </div>
   </nav>
   <hr>
@@ -60,6 +63,8 @@
       this.reset()
       return false;
     });
+
+
     /*AJAX for unsubscribing from a class*/
     $(document).on('click', "#unsubscribe", function(){
       var classname = $(this).prevAll("a#classname:first").text();

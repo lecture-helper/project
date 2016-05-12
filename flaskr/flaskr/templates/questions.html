@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
-  <a href="{{url_for('student')}}">Go Back</a>
+  <!-- <a href="{{url_for('student')}}">Go Back</a> -->
   <nav class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
       <h3>{{class_name}}</h3>
@@ -41,7 +41,21 @@
     <em>You haven't asked any questions</em>
   {% endfor %}
   </div>
+  <script type="text/javascript" src="/static/js/jquery-2.0.3.min.js"></script>
+  <script type="text/javascript" src="/static/js/reconnecting-websocket.min.js"></script>
   <script>
+    // Support TLS-specific URLs, when appropriate.
+    if (window.location.protocol == "https:") {
+      var ws_scheme = "wss://";
+    } else {
+      var ws_scheme = "ws://"
+    };
+    var outbox = new ReconnectingWebSocket(ws_scheme + location.host + "/submit");
+
+    outbox.onclose = function(){
+        console.log('outbox closed');
+        this.outbox = new WebSocket(outbox.url);
+    };
     /*AJAX for subscribing to a class*/
     $(document).on('submit', "form#add-question", function(){
       var datastring = $(this).serialize();
@@ -57,6 +71,8 @@
             $("div#flash").show().delay(5000).fadeOut();
             if(jobject.status == "OK"){
               $("div#questions").prepend("<h3>" + jobject.text + "</h3>" + jobject.date + ", " + jobject.time + "<br>Confusion: " + jobject.confusion + " | Tags: " + jobject.tag + "<br>");
+
+              outbox.send(JSON.stringify({ question: jobject.text, confusion: jobject.confusion, tag: jobject.tag, datetime: jobject.date + " @ " + jobject.time, class_name: "{{class_name}}"}));
             }
           },
           error: function(err){

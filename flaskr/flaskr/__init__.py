@@ -6,7 +6,9 @@ import nltk #make sure to do the formal download for this with the GUI
 #import nlp_script
 import uuid
 from flask import Flask, request, session, g, redirect, url_for, \
-	 abort, render_template, flash, Response, current_app
+     abort, render_template, flash, Response, current_app, jsonify
+
+from flask_sockets import Sockets
 from contextlib import closing
 from sqlite3 import dbapi2 as sqlite3
 import datetime
@@ -24,14 +26,16 @@ from socketio import socketio_manage
 from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 from threading import Thread
+import redis
+import gevent
 
 import logging
 logging.basicConfig()
 
 try:
-	from flask import _app_ctx_stack as stack
+    from flask import _app_ctx_stack as stack
 except ImportError:
-	from flask import _request_ctx_stack as stack
+    from flask import _request_ctx_stack as stack
 
 monkey.patch_all()
 
@@ -43,128 +47,108 @@ SECRET_KEY = 'development key'
 USERNAME = 'admin'
 PASSWORD = 'default'
 
+REDIS_URL = os.environ['REDIS_URL']
+REDIS_CHAN = 'chat'
+
 # create our little application :)
 app = Flask(__name__)
 app.debug = True
 app.config.from_object(__name__)
 
+sockets = Sockets(app)
+redis = redis.from_url(REDIS_URL)
+
 # manage user
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-from views import parseQuestions
-
-class QuestionsNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
-
-	def initialize(self):
-		self.room = ''
-		self.logger = app.logger
-		self.log("Socketio session started")
-		self.thread = Thread(target=self.thread_func)
-		self.thread.setDaemon(True)
-
-	def log(self, message):
-		self.logger.info("[{0}] {1}".format(self.socket.sessid, message))
-
-	def thread_func(self):
-		self.on_best_questions(self.room)
-		self.on_all_questions(self.room)
-
-	def on_join(self, room):
-		self.room = room.strip()
-		self.join(room)
-		self.on_best_questions(room)
-		return True
-
-	def on_update(self, room):
-		if not self.thread.is_alive():
-			self.thread = Thread(target=self.thread_func)
-			self.thread.setDaemon(True)
-			self.thread.start()
-
-	def on_all_questions(self, class_name):
-		with app.app_context():
-			global current_app
-			global sqlite3
-
-			db = sqlite3.connect(current_app.config['DATABASE'])
-
-			cur = db.execute('select question_text, question_date, question_time,question_confusion, question_tag from Question where question_id IN (select question_id from Asked_in where class_name= (?) )  order by question_date desc, question_time desc', [class_name])
-			questions = [dict(text=row[0], date=formatDate(row[1]), time=formatTime(row[2]), confusion=row[3], tags=formatTag(row[4])) for row in cur.fetchall()]
-			self.emit('all_to_prof', json.dumps(questions), self.room)
-
-			return True
-
-	def on_best_questions(self, class_name):
-		with app.app_context():
-			global current_app
-			global sqlite3
-
-			db = sqlite3.connect(current_app.config['DATABASE'])
-
-			question_query = db.execute('select question_text from Question where question_id IN (select question_id from Asked_in where class_name= (?) )  order by question_date desc, question_time desc', [class_name])
-			# select last 10 questions
-			question_list = [str(row[0]) for row in question_query][:10]
-			# choose top 3 most relevant questions
-			top_questions = parseQuestions.relevantQuestions(question_list, 3)
-			self.emit('best_to_prof', json.dumps(top_questions), self.room)
-			return True
-
-
-def formatDate(d):
-	monthDict={1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'}
-	li = d.split('-')
-	return '{0} {1}, {2}'.format(monthDict[int(li[1])], li[2], li[0])
-
-def formatTime(t):
-	li = t.split(':')
-	meridiem = {0:'am', 1:'pm'}
-	return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])	
-
-def formatTag(tags):
-	return [tag.strip() for tag in tags.split('#') if len(tag) > 0]
-
-# connect to our db above
 def connect_db():
-	return sqlite3.connect(app.config['DATABASE'])
+    return sqlite3.connect(app.config['DATABASE'])
 
 
 def init_db():
-	with closing(connect_db()) as db:
-		with app.open_resource('schema.sql', mode='r') as f:
-			db.cursor().executescript(f.read())
-		db.commit()
+    with closing(connect_db()) as db:
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
 
 
 @app.before_request
 def before_request():
-	g.db = connect_db()
-	g.db.executescript('PRAGMA foreign_keys=ON')
+    g.db = connect_db()
+    g.db.executescript('PRAGMA foreign_keys=ON')
 
 
 @app.teardown_request
 def teardown_request(exception):
-	db = getattr(g, 'db', None)
-	if db is not None:
-		db.close()
-
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
 
 @login_manager.user_loader
 def load_user(userid):
-	cur = g.db.execute('select type from Person where username = (?)', [userid])
-	person = [dict(type=row[0]) for row in cur.fetchall()]
-	if len(person) == 0:
-		return None
-	else:
-		return User(userid, person[0]['type'])
+    cur = g.db.execute('select type from Person where username = (?)', [userid])
+    person = [dict(type=row[0]) for row in cur.fetchall()]
+    if len(person) == 0:
+        return None
+    else:
+        return User(userid, person[0]['type'])
 
-@app.route('/socket.io/<path:remaining>')
-def socketio(remaining):
-	try:
-		socketio_manage(request.environ, {'/questions': QuestionsNamespace}, request)
-	except:
-		app.logger.error("Exception while handling socketio connection", exc_info=True)
-	return Response()
+from views import parseQuestions
+
+def formatDate(d):
+    monthDict={1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'}
+    li = d.split('-')
+    return '{0} {1}, {2}'.format(monthDict[int(li[1])], li[2], li[0])
+
+def formatTime(t):
+    li = t.split(':')
+    meridiem = {0:'am', 1:'pm'}
+    return  '{0}:{1} {2}'.format( int(li[0])%12,li[1],meridiem[int(li[0])/12])  
+
+def formatTag(tags):
+    return [tag.strip() for tag in tags.split('#') if len(tag) > 0]
+
+
+class ChatBackend(object):
+    """Interface for registering and updating WebSocket clients."""
+
+    def __init__(self):
+        self.clients = list()
+        self.pubsub = redis.pubsub()
+        self.pubsub.subscribe(REDIS_CHAN)
+
+    def __iter_data(self):
+        for message in self.pubsub.listen():
+            data = message.get('data')
+            if message['type'] == 'message':
+                # app.logger.info(u'Sending message: {}'.format(data))
+                yield data
+
+    def register(self, client):
+        """Register a WebSocket connection for Redis updates."""
+        self.clients.append(client)
+
+    def send(self, client, data):
+        """Send given data to the registered client.
+        Automatically discards invalid connections."""
+        try:
+            client.send(data)
+        except Exception:
+            self.clients.remove(client)
+
+    def run(self):
+        """Listens for new messages in Redis, and sends them to clients."""
+        for data in self.__iter_data():
+            for client in self.clients:
+                gevent.spawn(self.send, client, data)
+
+    def start(self):
+        """Maintains Redis subscription in the background."""
+        gevent.spawn(self.run)
+
+chats = ChatBackend()
+chats.start()
 
 import flaskr.views.student_views
 import flaskr.views.professor_views
@@ -172,5 +156,28 @@ import flaskr.views.timeline_views
 import flaskr.views.auth_views
 import flaskr.views.subscribe_actions
 
-if __name__ == '__main__':
-	 app.run() 
+
+# this is new add question
+@sockets.route('/submit')
+def inbox(ws):
+    """Receives incoming chat messages, inserts them into Redis."""
+    while not ws.closed:
+        # Sleep to prevent *constant* context-switches.
+        gevent.sleep(0.1)
+        message = ws.receive()
+        print message
+
+        if message:
+            # app.logger.info(u'Inserting message: {}'.format(message))
+            redis.publish(REDIS_CHAN, message)
+
+
+@sockets.route('/receive')
+def outbox(ws):
+    """Sends outgoing chat messages, via `ChatBackend`."""
+    chats.register(ws)
+
+    while not ws.closed:
+        # Context switch while `ChatBackend.start` is running in the background.
+        gevent.sleep(0.1)
+

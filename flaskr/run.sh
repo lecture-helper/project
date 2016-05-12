@@ -1,0 +1,1 @@
+gunicorn -w 8 -k flask_sockets.worker flaskr:app

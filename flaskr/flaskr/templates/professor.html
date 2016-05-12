@@ -3,6 +3,7 @@
 <nav class="navbar navbar-default" role="navigation">
   <div class="container-fluid" >
   <h3>Classes</h3>
+  <div id="classes" class=entries>
   {% for class in classes %}
     <dl id="registered-class">
       <dt><a class=classname id="classname" href="{{url_for('professor_class', username=current_user.username, class_name1=class.class_name)}}">{{class.class_name}}</a> 
@@ -29,7 +30,7 @@
   {% else %}
     <em>No classes</em>
   {% endfor %}
-  
+  </div>
 </div>
 </nav>
   <hr>

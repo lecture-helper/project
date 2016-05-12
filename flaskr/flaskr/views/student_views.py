@@ -51,3 +51,4 @@ def add_question():
 		return json.dumps({'status':'OK', 'flash':'New question added to class', 'text':txt, 'date':formatDate(date), 'time':formatTime(time), 'confusion':confusion, 'tag':formatTag(tags)})
 	except:
 		return json.dumps({'status':'no_class', 'flash':'Class does not exist. Question not added.'})
+
